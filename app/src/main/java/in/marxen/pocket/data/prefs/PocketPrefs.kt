@@ -21,6 +21,7 @@ class PocketPrefs(private val context: Context) {
         val BIOMETRIC_ENABLED = booleanPreferencesKey("biometric_enabled")
         val HIDE_RECENT_PREVIEW = booleanPreferencesKey("hide_recent_preview")
         val USER_NAME = stringPreferencesKey("user_name")
+        val DEFAULT_UPI_PACKAGE = stringPreferencesKey("default_upi_package")
     }
 
     val theme: Flow<String> = context.dataStore.data.map { it[Keys.THEME] ?: "light" }
@@ -29,6 +30,7 @@ class PocketPrefs(private val context: Context) {
     val biometricEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.BIOMETRIC_ENABLED] ?: false }
     val hideRecentPreview: Flow<Boolean> = context.dataStore.data.map { it[Keys.HIDE_RECENT_PREVIEW] ?: false }
     val userName: Flow<String> = context.dataStore.data.map { it[Keys.USER_NAME] ?: "" }
+    val defaultUpiPackage: Flow<String?> = context.dataStore.data.map { it[Keys.DEFAULT_UPI_PACKAGE] }
 
     suspend fun setTheme(theme: String) {
         context.dataStore.edit { it[Keys.THEME] = theme }
@@ -52,5 +54,12 @@ class PocketPrefs(private val context: Context) {
 
     suspend fun setUserName(name: String) {
         context.dataStore.edit { it[Keys.USER_NAME] = name }
+    }
+
+    suspend fun setDefaultUpiPackage(packageName: String?) {
+        context.dataStore.edit {
+            if (packageName != null) it[Keys.DEFAULT_UPI_PACKAGE] = packageName
+            else it.remove(Keys.DEFAULT_UPI_PACKAGE)
+        }
     }
 }

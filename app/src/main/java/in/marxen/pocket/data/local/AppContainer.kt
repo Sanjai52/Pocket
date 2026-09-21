@@ -6,6 +6,11 @@ import `in`.marxen.pocket.data.repository.TransactionRepository
 
 class AppContainer(context: Context) {
     val database = PocketDatabase.getInstance(context)
-    val repository = TransactionRepository(database.transactionDao(), database.categoryDao())
+    val repository = TransactionRepository(
+        transactionDao = database.transactionDao(),
+        categoryDao = database.categoryDao(),
+        paymentAttemptDao = database.paymentAttemptDao(),
+        merchantCategoryMemoryDao = database.merchantCategoryMemoryDao(),
+    )
     val prefs = PocketPrefs(context)
 }

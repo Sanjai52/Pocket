@@ -50,7 +50,11 @@ import `in`.marxen.pocket.ui.theme.PocketText
 import `in`.marxen.pocket.ui.theme.PocketTextSecondary
 
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel) {
+fun SettingsScreen(
+    viewModel: SettingsViewModel,
+    onDefaultPaymentApp: () -> Unit = {},
+    onPaymentsToConfirm: () -> Unit = {},
+) {
     val theme by viewModel.theme.collectAsState()
     val biometricEnabled by viewModel.biometricEnabled.collectAsState()
     val hideRecentPreview by viewModel.hideRecentPreview.collectAsState()
@@ -185,11 +189,27 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             )
 
             SettingsRowWithIcon(
-                emoji = "\uD83D\uDCCA",
-                iconBackground = Color(0xFFE17055),
-                title = "Budgets",
+                emoji = "\uD83D\uDD04",
+                iconBackground = Color(0xFF00CEC9),
+                title = "Recurring Expenses",
                 value = null,
                 onClick = {},
+            )
+
+            SettingsRowWithIcon(
+                emoji = "\uD83D\uDCB3",
+                iconBackground = PocketGreen,
+                title = "Default payment app",
+                value = null,
+                onClick = onDefaultPaymentApp,
+            )
+
+            SettingsRowWithIcon(
+                emoji = "\uD83D\uDCF7",
+                iconBackground = Color(0xFF0984E3),
+                title = "Payments to confirm",
+                value = null,
+                onClick = onPaymentsToConfirm,
             )
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))

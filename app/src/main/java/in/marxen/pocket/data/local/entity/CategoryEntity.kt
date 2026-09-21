@@ -11,6 +11,7 @@ data class CategoryEntity(
     val name: String,
     val icon: String? = null,
     val color: Long? = null,
+    @ColumnInfo(name = "system_key") val systemKey: String? = null,
     @ColumnInfo(name = "is_hidden") val isHidden: Boolean = false,
     @ColumnInfo(name = "created_at") val createdAt: Instant = Instant.now(),
     @ColumnInfo(name = "updated_at") val updatedAt: Instant = Instant.now(),

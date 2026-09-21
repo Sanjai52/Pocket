@@ -36,4 +36,10 @@ interface CategoryDao {
 
     @Query("SELECT * FROM categories ORDER BY name ASC")
     fun getAll(): Flow<List<CategoryEntity>>
+
+    @Query("SELECT * FROM categories WHERE system_key = :systemKey LIMIT 1")
+    fun getBySystemKey(systemKey: String): Flow<CategoryEntity?>
+
+    @Query("SELECT * FROM categories WHERE system_key = :systemKey LIMIT 1")
+    suspend fun getBySystemKeySync(systemKey: String): CategoryEntity?
 }

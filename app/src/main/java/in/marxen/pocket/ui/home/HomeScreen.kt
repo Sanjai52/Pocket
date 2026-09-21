@@ -66,6 +66,8 @@ fun HomeScreen(
     onAddExpense: () -> Unit = {},
     onSeeAll: () -> Unit = {},
     onMonthClick: () -> Unit = {},
+    onScanQr: () -> Unit = {},
+    onPaymentsToConfirm: () -> Unit = {},
     viewModel: HomeViewModel = viewModel(
         factory = HomeViewModel.Factory(
             (LocalContext.current.applicationContext as `in`.marxen.pocket.PocketApplication).container.repository,
@@ -104,7 +106,7 @@ fun HomeScreen(
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = "S",
+                        text = state.userName.ifBlank { "User" }.first().toString().uppercase(),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,

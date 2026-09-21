@@ -33,6 +33,7 @@ data class TransactionEntity(
     @ColumnInfo(name = "transaction_date") val transactionDate: LocalDate,
     val merchant: String? = null,
     val note: String? = null,
+    @ColumnInfo(name = "payment_attempt_id") val paymentAttemptId: String? = null,
     @ColumnInfo(name = "created_at") val createdAt: Instant = Instant.now(),
     @ColumnInfo(name = "updated_at") val updatedAt: Instant = Instant.now(),
 )

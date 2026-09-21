@@ -41,13 +41,6 @@ android {
     buildFeatures {
         compose = true
     }
-
-    applicationVariants.all {
-        outputs.all {
-            val output = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
-            output.outputFileName = "Pocket-v${versionName}-release.apk"
-        }
-    }
 }
 
 dependencies {
@@ -67,6 +60,11 @@ dependencies {
     implementation(libs.androidx.datastore)
     implementation(libs.kotlinx.serialization)
     implementation(libs.kotlinx.coroutines)
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
+    implementation(libs.mlkit.barcode.scanning)
 
     ksp(libs.androidx.room.compiler)
 
