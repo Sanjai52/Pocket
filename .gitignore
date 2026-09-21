@@ -17,6 +17,9 @@ PLAN.md
 PRD.md
 ref/
 
+# APK output
+releases/
+
 # OS
 .DS_Store
 Thumbs.db

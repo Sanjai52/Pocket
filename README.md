@@ -29,7 +29,7 @@ A personal expense manager Android app built with Jetpack Compose, Room, and Mat
 ./gradlew assembleRelease
 ```
 
-Release APK: `app/build/outputs/apk/release/app-release.apk`
+Release APK: `releases/Pocket-v1.0-release.apk`
 
 ## License
 
