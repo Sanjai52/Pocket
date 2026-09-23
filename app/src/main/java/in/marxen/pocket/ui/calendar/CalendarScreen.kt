@@ -322,7 +322,7 @@ private fun TransactionRow(txn: TransactionUi, onClick: () -> Unit) {
                 color = PocketText,
             )
             Text(
-                text = txn.entity.note ?: "-",
+                text = txn.subcategoryName ?: txn.entity.note ?: "-",
                 style = MaterialTheme.typography.bodySmall,
                 color = PocketTextSecondary,
             )

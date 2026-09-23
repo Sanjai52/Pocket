@@ -7,6 +7,7 @@ import androidx.compose.runtime.Immutable
 import `in`.marxen.pocket.core.date.asiaKolkataToday
 import `in`.marxen.pocket.core.money.formatPaiseAsRupees
 import `in`.marxen.pocket.data.local.entity.CategoryEntity
+import `in`.marxen.pocket.data.local.entity.SubcategoryEntity
 import `in`.marxen.pocket.data.local.entity.TransactionEntity
 import `in`.marxen.pocket.data.repository.TransactionRepository
 import `in`.marxen.pocket.ui.home.TransactionUi
@@ -53,6 +54,7 @@ class CalendarViewModel(private val repository: TransactionRepository) : ViewMod
         val days: List<DaySummary>,
         val transactionsByDay: Map<LocalDate, List<TransactionEntity>>,
         val categories: Map<Long, CategoryEntity>,
+        val subcategories: Map<Long, SubcategoryEntity>,
     )
 
     private val monthlyData = combine(
@@ -60,8 +62,9 @@ class CalendarViewModel(private val repository: TransactionRepository) : ViewMod
         _month.flatMapLatest { month ->
             repository.getTransactionsByDateRange(month.atDay(1), month.atEndOfMonth())
         },
+        repository.getAllActiveSubcategories(),
         _month,
-    ) { categories, transactions, month ->
+    ) { categories, transactions, subcategories, month ->
         val catMap = categories.associateBy { it.id }
         val today = asiaKolkataToday()
         val txnsByDay = transactions.groupBy { it.transactionDate }
@@ -97,7 +100,7 @@ class CalendarViewModel(private val repository: TransactionRepository) : ViewMod
                 dotColor = dotColor,
             )
         }
-        MonthlyCalendarData(month, days, txnsByDay, catMap)
+        MonthlyCalendarData(month, days, txnsByDay, catMap, subcategories.associateBy { it.id })
     }.flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -110,17 +113,18 @@ class CalendarViewModel(private val repository: TransactionRepository) : ViewMod
                 month = data.month,
                 selectedDate = selectedDate,
                 days = data.days.map { it.copy(isSelected = it.date == selectedDate) },
-                selectedDayTransactions = selectedDayTxns.map { txn ->
-                    val cat = data.categories[txn.categoryId]
-                    TransactionUi(
-                        entity = txn,
-                        categoryName = cat?.name ?: "Other",
-                        categoryColor = cat?.color,
-                        categoryIcon = cat?.icon,
-                        formattedAmount = formatPaiseAsRupees(txn.amountPaise),
-                        timeLabel = formatTime(txn.createdAt),
-                    )
-                },
+            selectedDayTransactions = selectedDayTxns.map { txn ->
+                val cat = data.categories[txn.categoryId]
+                TransactionUi(
+                    entity = txn,
+                    categoryName = cat?.name ?: "Other",
+                    categoryColor = cat?.color,
+                    categoryIcon = cat?.icon,
+                    subcategoryName = txn.subcategoryId?.let { data.subcategories[it]?.name },
+                    formattedAmount = formatPaiseAsRupees(txn.amountPaise),
+                    timeLabel = formatTime(txn.createdAt),
+                )
+            },
                 selectedDayTotal = formatPaiseAsRupees(
                     selectedDayTxns.filter { it.type == "EXPENSE" }.sumOf { it.amountPaise },
                 ),
