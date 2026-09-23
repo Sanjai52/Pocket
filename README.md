@@ -5,7 +5,9 @@ subcategory, browse a calendar of transactions, and review insights with
 category breakdowns and monthly trends — all offline, all on-device.
 
 
-![Home](docs/screenshots/home.png)
+<p align="center">
+  <img src="docs/screenshots/home.png" width="170" alt="Home">
+</p>
 
 ## Features
 
