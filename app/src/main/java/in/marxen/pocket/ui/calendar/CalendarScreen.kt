@@ -32,6 +32,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,6 +49,7 @@ import `in`.marxen.pocket.ui.theme.PocketBeige
 import `in`.marxen.pocket.ui.theme.PocketGreen
 import `in`.marxen.pocket.ui.theme.PocketText
 import `in`.marxen.pocket.ui.theme.PocketTextSecondary
+import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
 
@@ -74,6 +76,7 @@ fun CalendarScreen(
     ),
 ) {
     val state by viewModel.uiState.collectAsState()
+    val onDateSelected = remember(viewModel) { { date: LocalDate -> viewModel.selectDate(date) } }
 
     LazyColumn(
         modifier = Modifier
@@ -134,10 +137,10 @@ fun CalendarScreen(
                 modifier = Modifier.height(300.dp),
                 userScrollEnabled = false,
             ) {
-                items(state.days) { day ->
+                items(state.days, key = { it.date }) { day ->
                     DayCell(
                         day = day,
-                        onClick = { viewModel.selectDate(day.date) },
+                        onDateSelected = onDateSelected,
                     )
                 }
             }
@@ -207,7 +210,7 @@ fun CalendarScreen(
 }
 
 @Composable
-private fun DayCell(day: DaySummary, onClick: () -> Unit) {
+private fun DayCell(day: DaySummary, onDateSelected: (LocalDate) -> Unit) {
     val isSelected = day.isSelected
     val isToday = day.isToday
 
@@ -229,7 +232,7 @@ private fun DayCell(day: DaySummary, onClick: () -> Unit) {
                 }
             )
             .clip(CircleShape)
-            .clickable(onClick = onClick),
+            .clickable(onClick = { onDateSelected(day.date) }),
         contentAlignment = Alignment.Center,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {

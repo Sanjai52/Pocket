@@ -53,9 +53,32 @@ interface TransactionDao {
 
     @Query("SELECT category_id, SUM(amount_paise) as total FROM transactions WHERE type = 'EXPENSE' AND transaction_date BETWEEN :start AND :end GROUP BY category_id ORDER BY total DESC")
     fun categoryTotals(start: LocalDate, end: LocalDate): Flow<List<CategoryTotal>>
+
+    @Query("SELECT COALESCE(SUM(amount_paise), 0) FROM transactions WHERE type = 'EXPENSE' AND category_id = :categoryId AND transaction_date BETWEEN :start AND :end")
+    fun categoryTotal(categoryId: Long, start: LocalDate, end: LocalDate): Flow<Long>
+
+    @Query("SELECT CAST(substr(transaction_date, 1, 4) AS INTEGER) AS year, CAST(substr(transaction_date, 6, 2) AS INTEGER) AS month, SUM(amount_paise) AS totalPaise FROM transactions WHERE type = 'EXPENSE' AND transaction_date BETWEEN :start AND :end GROUP BY year, month ORDER BY year, month")
+    suspend fun monthlyExpenseTotals(start: LocalDate, end: LocalDate): List<MonthlyExpenseTotal>
+
+    @Query("SELECT subcategory_id, SUM(amount_paise) as total FROM transactions WHERE type = 'EXPENSE' AND category_id = :categoryId AND transaction_date BETWEEN :start AND :end AND subcategory_id IS NOT NULL GROUP BY subcategory_id ORDER BY total DESC")
+    fun subcategoryTotals(categoryId: Long, start: LocalDate, end: LocalDate): Flow<List<SubcategoryTotal>>
+
+    @Query("SELECT MIN(transaction_date) FROM transactions")
+    suspend fun getEarliestTransactionDate(): LocalDate?
 }
 
 data class CategoryTotal(
     @androidx.room.ColumnInfo(name = "category_id") val categoryId: Long,
+    val total: Long,
+)
+
+data class MonthlyExpenseTotal(
+    val year: Int,
+    val month: Int,
+    val totalPaise: Long,
+)
+
+data class SubcategoryTotal(
+    @androidx.room.ColumnInfo(name = "subcategory_id") val subcategoryId: Long,
     val total: Long,
 )

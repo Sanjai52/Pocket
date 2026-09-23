@@ -6,17 +6,20 @@ import androidx.lifecycle.viewModelScope
 import `in`.marxen.pocket.core.date.asiaKolkataToday
 import `in`.marxen.pocket.core.money.formatPaiseAsRupees
 import `in`.marxen.pocket.data.local.entity.CategoryEntity
+import `in`.marxen.pocket.data.local.entity.SubcategoryEntity
 import `in`.marxen.pocket.data.local.entity.TransactionEntity
 import `in`.marxen.pocket.data.prefs.PocketPrefs
 import `in`.marxen.pocket.data.repository.TransactionRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
 import java.time.YearMonth
 
 data class TransactionUi(
@@ -24,6 +27,7 @@ data class TransactionUi(
     val categoryName: String,
     val categoryColor: Long?,
     val categoryIcon: String?,
+    val subcategoryName: String? = null,
     val formattedAmount: String,
     val timeLabel: String,
 )
@@ -41,7 +45,9 @@ data class HomeUiState(
     val selectedDate: java.time.LocalDate = asiaKolkataToday(),
     val monthTransactions: List<TransactionEntity> = emptyList(),
     val categories: Map<Long, CategoryEntity> = emptyMap(),
+    val subcategories: Map<Long, SubcategoryEntity> = emptyMap(),
     val userName: String = "",
+    val earliestMonth: YearMonth = YearMonth.now(),
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -51,8 +57,17 @@ class HomeViewModel(
 ) : ViewModel() {
     private val _selectedDate = MutableStateFlow(asiaKolkataToday())
     private val _selectedMonth = MutableStateFlow(YearMonth.now())
+    private val _earliestMonth = MutableStateFlow(YearMonth.now())
 
-    val uiState: StateFlow<HomeUiState> = combine(
+    private data class MonthData(
+        val expenses: Long,
+        val income: Long,
+        val transactions: List<TransactionEntity>,
+        val categories: Map<Long, CategoryEntity>,
+        val subcategories: Map<Long, SubcategoryEntity>,
+    )
+
+    private val monthlyData: StateFlow<MonthData> = combine(
         _selectedMonth.flatMapLatest { m ->
             repository.getTotalExpenses(m)
         },
@@ -63,30 +78,62 @@ class HomeViewModel(
             repository.getTransactionsByDateRange(m.atDay(1), m.atEndOfMonth())
         },
         repository.getActiveCategories(),
+    ) { expenses, income, transactions, categories ->
+        MonthData(
+            expenses = expenses,
+            income = income,
+            transactions = transactions,
+            categories = categories.associateBy { it.id },
+            subcategories = emptyMap(),
+        )
+    }.combine(repository.getAllActiveSubcategories()) { data, subcategories ->
+        val subMap = subcategories.associateBy { it.id }
+        data.copy(subcategories = subMap)
+    }.flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), MonthData(0, 0, emptyList(), emptyMap(), emptyMap()))
+
+    val uiState: StateFlow<HomeUiState> = combine(
+        monthlyData,
         _selectedDate,
-    ) { expenses, income, transactions, categories, selectedDate ->
-        val catMap = categories.associateBy { it.id }
+        prefs.userName,
+        _earliestMonth,
+    ) { data, selectedDate, userName, earliestMonth ->
         val today = asiaKolkataToday()
-        val todayTxns = transactions.filter { it.transactionDate == today }
-        val selectedTxns = transactions.filter { it.transactionDate == selectedDate }
+        val todayTxns = data.transactions.filter { it.transactionDate == today }
+        val selectedTxns = data.transactions.filter { it.transactionDate == selectedDate }
 
         HomeUiState(
             month = _selectedMonth.value,
-            totalExpenses = expenses,
-            totalIncome = income,
-            balance = income - expenses,
-            totalExpensesFormatted = formatPaiseAsRupees(expenses),
-            totalIncomeFormatted = formatPaiseAsRupees(income),
-            balanceFormatted = formatPaiseAsRupees(income - expenses),
-            todayTransactions = todayTxns.map { it.toUi(catMap) },
-            selectedDateTransactions = selectedTxns.map { it.toUi(catMap) },
+            totalExpenses = data.expenses,
+            totalIncome = data.income,
+            balance = data.income - data.expenses,
+            totalExpensesFormatted = formatPaiseAsRupees(data.expenses),
+            totalIncomeFormatted = formatPaiseAsRupees(data.income),
+            balanceFormatted = formatPaiseAsRupees(data.income - data.expenses),
+            todayTransactions = todayTxns.map { it.toUi(data.categories, data.subcategories) },
+            selectedDateTransactions = selectedTxns.map { it.toUi(data.categories, data.subcategories) },
             selectedDate = selectedDate,
-            monthTransactions = transactions,
-            categories = catMap,
+            monthTransactions = data.transactions,
+            categories = data.categories,
+            subcategories = data.subcategories,
+            userName = userName,
+            earliestMonth = earliestMonth,
         )
-    }.combine(prefs.userName) { state, userName ->
-        state.copy(userName = userName)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HomeUiState())
+    }.flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HomeUiState())
+
+    init {
+        loadEarliestMonth()
+    }
+
+    private fun loadEarliestMonth() {
+        viewModelScope.launch {
+            val earliest = repository.getEarliestTransactionDate()
+            if (earliest != null) {
+                _earliestMonth.value = YearMonth.from(earliest)
+            }
+        }
+    }
 
     fun selectDate(date: java.time.LocalDate) {
         _selectedDate.value = date
@@ -96,19 +143,15 @@ class HomeViewModel(
         _selectedMonth.value = month
     }
 
-    fun deleteTransaction(transaction: TransactionEntity) {
-        viewModelScope.launch {
-            repository.deleteTransaction(transaction)
-        }
-    }
-
-    private fun TransactionEntity.toUi(cats: Map<Long, CategoryEntity>): TransactionUi {
+    private fun TransactionEntity.toUi(cats: Map<Long, CategoryEntity>, subs: Map<Long, SubcategoryEntity>): TransactionUi {
         val cat = cats[categoryId]
+        val sub = subcategoryId?.let { subs[it] }
         return TransactionUi(
             entity = this,
             categoryName = cat?.name ?: "Unknown",
             categoryColor = cat?.color,
             categoryIcon = cat?.icon,
+            subcategoryName = sub?.name,
             formattedAmount = formatPaiseAsRupees(amountPaise),
             timeLabel = transactionDate.toString(),
         )

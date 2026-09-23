@@ -6,8 +6,10 @@ import androidx.lifecycle.viewModelScope
 import `in`.marxen.pocket.core.date.asiaKolkataToday
 import `in`.marxen.pocket.core.money.rupeesToPaise
 import `in`.marxen.pocket.data.local.entity.CategoryEntity
+import `in`.marxen.pocket.data.local.entity.SubcategoryEntity
 import `in`.marxen.pocket.data.local.entity.TransactionEntity
 import `in`.marxen.pocket.data.repository.TransactionRepository
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -15,6 +17,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -25,6 +29,7 @@ data class AddExpenseUiState(
     val amount: String = "",
     val type: String = "EXPENSE",
     val selectedCategoryId: Long? = null,
+    val selectedSubcategoryId: Long? = null,
     val date: LocalDate = asiaKolkataToday(),
     val note: String = "",
     val merchant: String = "",
@@ -35,13 +40,27 @@ data class AddExpenseUiState(
     val detailsExpanded: Boolean = false,
     val showAddCategoryDialog: Boolean = false,
     val customCategoryName: String = "",
+    val showAddSubcategoryDialog: Boolean = false,
+    val customSubcategoryName: String = "",
 )
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class AddExpenseViewModel(private val repository: TransactionRepository) : ViewModel() {
     private val _uiState = MutableStateFlow(AddExpenseUiState())
     val uiState: StateFlow<AddExpenseUiState> = _uiState.asStateFlow()
 
     val categories: StateFlow<List<CategoryEntity>> = repository.getActiveCategories()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val subcategories: StateFlow<List<SubcategoryEntity>> = _uiState
+        .flatMapLatest { state ->
+            val catId = state.selectedCategoryId
+            if (catId != null) {
+                repository.getActiveSubcategoriesByCategoryId(catId)
+            } else {
+                flowOf(emptyList())
+            }
+        }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val _saved = MutableSharedFlow<Boolean>()
@@ -61,7 +80,11 @@ class AddExpenseViewModel(private val repository: TransactionRepository) : ViewM
     }
 
     fun selectCategory(id: Long) {
-        _uiState.update { it.copy(selectedCategoryId = id, categoryError = null) }
+        _uiState.update { it.copy(selectedCategoryId = id, selectedSubcategoryId = null, categoryError = null) }
+    }
+
+    fun selectSubcategory(id: Long) {
+        _uiState.update { it.copy(selectedSubcategoryId = id) }
     }
 
     fun updateDate(date: LocalDate) {
@@ -92,6 +115,36 @@ class AddExpenseViewModel(private val repository: TransactionRepository) : ViewM
         _uiState.update { it.copy(customCategoryName = name) }
     }
 
+    fun showAddSubcategoryDialog() {
+        _uiState.update { it.copy(showAddSubcategoryDialog = true, customSubcategoryName = "") }
+    }
+
+    fun dismissAddSubcategoryDialog() {
+        _uiState.update { it.copy(showAddSubcategoryDialog = false, customSubcategoryName = "") }
+    }
+
+    fun updateCustomSubcategoryName(name: String) {
+        _uiState.update { it.copy(customSubcategoryName = name) }
+    }
+
+    fun addCustomSubcategory() {
+        val name = _uiState.value.customSubcategoryName.trim()
+        val categoryId = _uiState.value.selectedCategoryId ?: return
+        if (name.isBlank()) return
+        viewModelScope.launch {
+            val id = repository.insertSubcategory(
+                SubcategoryEntity(name = name, categoryId = categoryId)
+            )
+            _uiState.update {
+                it.copy(
+                    selectedSubcategoryId = id,
+                    showAddSubcategoryDialog = false,
+                    customSubcategoryName = "",
+                )
+            }
+        }
+    }
+
     fun addCustomCategory() {
         val name = _uiState.value.customCategoryName.trim()
         if (name.isBlank()) return
@@ -118,6 +171,7 @@ class AddExpenseViewModel(private val repository: TransactionRepository) : ViewM
                     amount = (txn.amountPaise / 100.0).toString(),
                     type = txn.type,
                     selectedCategoryId = txn.categoryId,
+                    selectedSubcategoryId = txn.subcategoryId,
                     date = txn.transactionDate,
                     note = txn.note ?: "",
                     merchant = txn.merchant ?: "",
@@ -164,6 +218,7 @@ class AddExpenseViewModel(private val repository: TransactionRepository) : ViewM
                         type = state.type,
                         amountPaise = paise,
                         categoryId = state.selectedCategoryId!!,
+                        subcategoryId = state.selectedSubcategoryId,
                         transactionDate = state.date,
                         note = state.note.ifBlank { null },
                         merchant = state.merchant.ifBlank { null },
@@ -176,6 +231,7 @@ class AddExpenseViewModel(private val repository: TransactionRepository) : ViewM
                         type = state.type,
                         amountPaise = paise,
                         categoryId = state.selectedCategoryId!!,
+                        subcategoryId = state.selectedSubcategoryId,
                         transactionDate = state.date,
                         note = state.note.ifBlank { null },
                         merchant = state.merchant.ifBlank { null },

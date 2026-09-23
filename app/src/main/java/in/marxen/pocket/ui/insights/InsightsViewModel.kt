@@ -6,17 +6,18 @@ import androidx.lifecycle.viewModelScope
 import `in`.marxen.pocket.core.money.formatPaiseAsRupees
 import `in`.marxen.pocket.data.repository.TransactionRepository
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
 import java.time.YearMonth
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 data class CategoryBreakdown(
+    val categoryId: Long,
     val name: String,
     val color: Long?,
     val amount: Long,
@@ -64,6 +65,7 @@ class InsightsViewModel(private val repository: TransactionRepository) : ViewMod
         val breakdown = categoryTotals.map { ct ->
             val cat = catMap[ct.categoryId]
             CategoryBreakdown(
+                categoryId = ct.categoryId,
                 name = cat?.name ?: "Unknown",
                 color = cat?.color,
                 amount = ct.total,
@@ -84,7 +86,8 @@ class InsightsViewModel(private val repository: TransactionRepository) : ViewMod
         )
     }.combine(_monthlyTrends) { state, trends ->
         state.copy(monthlyTrend = trends)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), InsightsUiState())
+    }.flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), InsightsUiState())
 
     init {
         loadMonthlyTrends()
@@ -93,20 +96,20 @@ class InsightsViewModel(private val repository: TransactionRepository) : ViewMod
     private fun loadMonthlyTrends() {
         viewModelScope.launch {
             val currentMonth = _selectedMonth.value
-            val trends = mutableListOf<MonthTotal>()
-            val formatter = DateTimeFormatter.ofPattern("MMM", Locale.ENGLISH)
-            for (i in 5 downTo 0) {
-                val m = currentMonth.minusMonths(i.toLong())
-                val expenses = repository.getTotalExpensesSync(m)
-                trends.add(
-                    MonthTotal(
-                        label = m.format(formatter),
-                        total = expenses,
-                        formattedTotal = formatPaiseAsRupees(expenses),
-                    ),
+            val firstMonth = currentMonth.minusMonths(5)
+            val totalsByMonth = repository.getMonthlyExpenseTotals(
+                firstMonth.atDay(1),
+                currentMonth.atEndOfMonth(),
+            ).associate { java.time.YearMonth.of(it.year, it.month) to it.totalPaise }
+            _monthlyTrends.value = (0..5).map { offset ->
+                val month = firstMonth.plusMonths(offset.toLong())
+                val expenses = totalsByMonth[month] ?: 0L
+                MonthTotal(
+                    label = month.month.name.take(3).replaceFirstChar { it.titlecase() },
+                    total = expenses,
+                    formattedTotal = formatPaiseAsRupees(expenses),
                 )
             }
-            _monthlyTrends.value = trends
         }
     }
 

@@ -27,7 +27,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -52,8 +51,6 @@ import `in`.marxen.pocket.ui.theme.PocketTextSecondary
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel) {
     val theme by viewModel.theme.collectAsState()
-    val biometricEnabled by viewModel.biometricEnabled.collectAsState()
-    val hideRecentPreview by viewModel.hideRecentPreview.collectAsState()
     val backupMessage by viewModel.backupMessage.collectAsState()
 
     var showThemeDialog by remember { mutableStateOf(false) }
@@ -110,14 +107,6 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                 onClick = { showThemeDialog = true },
             )
 
-            SettingsRowWithIcon(
-                emoji = "\uD83D\uDCF1",
-                iconBackground = PocketGreen,
-                title = "App Icon",
-                value = null,
-                onClick = {},
-            )
-
             HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
             SectionHeader("Data")
@@ -154,64 +143,6 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                 title = "Manage Data",
                 value = null,
                 onClick = { showDeleteDialog = true },
-            )
-
-            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-
-            SectionHeader("Preferences")
-
-            SettingsRowWithIcon(
-                emoji = "\uD83D\uDCCB",
-                iconBackground = Color(0xFFE17055),
-                title = "Categories",
-                value = null,
-                onClick = {},
-            )
-
-            SettingsRowWithIcon(
-                emoji = "\uD83D\uDCB3",
-                iconBackground = Color(0xFF6C5CE7),
-                title = "Payment Methods",
-                value = null,
-                onClick = {},
-            )
-
-            SettingsRowWithIcon(
-                emoji = "\uD83D\uDD04",
-                iconBackground = Color(0xFF00CEC9),
-                title = "Recurring Expenses",
-                value = null,
-                onClick = {},
-            )
-
-            SettingsRowWithIcon(
-                emoji = "\uD83D\uDCCA",
-                iconBackground = Color(0xFFE17055),
-                title = "Budgets",
-                value = null,
-                onClick = {},
-            )
-
-            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-
-            SectionHeader("Security")
-
-            SettingsToggleRowWithIcon(
-                emoji = "\uD83D\uDD12",
-                iconBackground = Color(0xFFD63031),
-                title = "App Lock",
-                subtitle = if (biometricEnabled) "On" else "Off",
-                checked = biometricEnabled,
-                onCheckedChange = { viewModel.toggleBiometric(it) },
-            )
-
-            SettingsToggleRowWithIcon(
-                emoji = "\uD83D\uDC41\uFE0F",
-                iconBackground = PocketGreen,
-                title = "Hide Amounts in Recents",
-                subtitle = null,
-                checked = hideRecentPreview,
-                onCheckedChange = { viewModel.toggleHideRecentPreview(it) },
             )
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
@@ -331,45 +262,6 @@ private fun SettingsRowWithIcon(
             contentDescription = null,
             tint = PocketTextSecondary.copy(alpha = 0.5f),
         )
-    }
-}
-
-@Composable
-private fun SettingsToggleRowWithIcon(
-    emoji: String,
-    iconBackground: Color,
-    title: String,
-    subtitle: String?,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape)
-                .background(iconBackground.copy(alpha = 0.15f)),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(text = emoji, fontSize = 18.sp)
-        }
-        Spacer(modifier = Modifier.width(12.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, style = MaterialTheme.typography.bodyLarge)
-            if (subtitle != null) {
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = PocketTextSecondary,
-                )
-            }
-        }
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
     }
 }
 

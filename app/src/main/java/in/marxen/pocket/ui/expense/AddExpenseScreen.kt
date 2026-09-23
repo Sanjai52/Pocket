@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,6 +17,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -79,6 +82,7 @@ fun AddExpenseScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val categories by viewModel.categories.collectAsState()
+    val subcategories by viewModel.subcategories.collectAsState()
     var showDatePicker by remember { mutableStateOf(false) }
 
     LaunchedEffect(transactionId) {
@@ -205,7 +209,11 @@ fun AddExpenseScreen(
             "other" to Color(0xFF607D8B),
         )
 
-        val displayCategories = categories.filter { it.name.lowercase() in listOf("food", "entertainment", "bills", "groceries", "health", "other") }
+        val displayCategories = categories.filter { it.name.lowercase() in listOf("food", "entertainment", "groceries", "health", "bills", "other") }
+            .sortedBy { cat ->
+                val order = listOf("food", "entertainment", "groceries", "health", "bills", "other")
+                order.indexOf(cat.name.lowercase())
+            }
 
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             displayCategories.chunked(3).forEach { row ->
@@ -276,6 +284,58 @@ fun AddExpenseScreen(
             }
         }
 
+        if (subcategories.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = "Subcategory",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = PocketText,
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 0.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                items(subcategories) { sub ->
+                    val selected = state.selectedSubcategoryId == sub.id
+                    FilterChip(
+                        selected = selected,
+                        onClick = { viewModel.selectSubcategory(sub.id) },
+                        label = { Text(sub.name) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = PocketGreen,
+                            selectedLabelColor = Color.White,
+                        ),
+                    )
+                }
+                item {
+                    FilterChip(
+                        selected = false,
+                        onClick = { viewModel.showAddSubcategoryDialog() },
+                        label = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    Icons.Filled.Add,
+                                    contentDescription = "Add custom subcategory",
+                                    tint = PocketGreen,
+                                    modifier = Modifier.size(16.dp),
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Custom", color = PocketGreen)
+                            }
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            containerColor = PocketGreen.copy(alpha = 0.1f),
+                        ),
+                    )
+                }
+            }
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
 
         Surface(
@@ -339,13 +399,6 @@ fun AddExpenseScreen(
                     value = state.note,
                     onValueChange = { viewModel.updateNote(it) },
                     label = { Text("Note") },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = state.merchant,
-                    onValueChange = { viewModel.updateMerchant(it) },
-                    label = { Text("Merchant") },
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
@@ -419,6 +472,32 @@ fun AddExpenseScreen(
             },
             dismissButton = {
                 TextButton(onClick = { viewModel.dismissAddCategoryDialog() }) {
+                    Text("Cancel")
+                }
+            },
+        )
+    }
+
+    if (state.showAddSubcategoryDialog) {
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissAddSubcategoryDialog() },
+            title = { Text("Add Custom Subcategory") },
+            text = {
+                OutlinedTextField(
+                    value = state.customSubcategoryName,
+                    onValueChange = { viewModel.updateCustomSubcategoryName(it) },
+                    label = { Text("Subcategory name") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { viewModel.addCustomSubcategory() }) {
+                    Text("Add")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.dismissAddSubcategoryDialog() }) {
                     Text("Cancel")
                 }
             },

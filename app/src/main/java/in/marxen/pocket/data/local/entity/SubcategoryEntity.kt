@@ -6,36 +6,27 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.time.Instant
-import java.time.LocalDate
 
 @Entity(
-    tableName = "transactions",
+    tableName = "subcategories",
     foreignKeys = [
         ForeignKey(
             entity = CategoryEntity::class,
             parentColumns = ["id"],
             childColumns = ["category_id"],
-            onDelete = ForeignKey.NO_ACTION,
+            onDelete = ForeignKey.CASCADE,
         ),
     ],
     indices = [
-        Index("transaction_date"),
         Index("category_id"),
-        Index("transaction_date", "category_id"),
-        Index("type", "transaction_date"),
-        Index("category_id", "transaction_date", "type"),
     ],
 )
-data class TransactionEntity(
+data class SubcategoryEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val type: String,
-    @ColumnInfo(name = "amount_paise") val amountPaise: Long,
+    val name: String,
     @ColumnInfo(name = "category_id") val categoryId: Long,
-    @ColumnInfo(name = "subcategory_id") val subcategoryId: Long? = null,
-    @ColumnInfo(name = "payment_method_id") val paymentMethodId: Long? = null,
-    @ColumnInfo(name = "transaction_date") val transactionDate: LocalDate,
-    val merchant: String? = null,
-    val note: String? = null,
+    @ColumnInfo(name = "system_key") val systemKey: String? = null,
+    @ColumnInfo(name = "is_hidden") val isHidden: Boolean = false,
     @ColumnInfo(name = "created_at") val createdAt: Instant = Instant.now(),
     @ColumnInfo(name = "updated_at") val updatedAt: Instant = Instant.now(),
 )
