@@ -61,6 +61,7 @@ private val donutColors = listOf(CatFood, CatBills, CatShopping, CatTransport, C
 
 @Composable
 fun InsightsScreen(
+    onSeeAllCategories: () -> Unit = {},
     viewModel: InsightsViewModel = viewModel(
         factory = InsightsViewModel.Factory(
             (LocalContext.current.applicationContext as `in`.marxen.pocket.PocketApplication).container.repository,
@@ -131,6 +132,7 @@ fun InsightsScreen(
                 when (state.selectedTab) {
                     0 -> SpendingTab(
                         state = state,
+                        onSeeAllCategories = onSeeAllCategories,
                         onSeeAllClick = { viewModel.selectTab(2) },
                     )
                     1 -> IncomeTab(state)
@@ -162,7 +164,7 @@ private fun MonthPickerDialog(
 ) {
     val months = remember {
         val now = YearMonth.now()
-        (0L..11L).map { now.minusMonths(it) }
+        (0L..5L).map { now.minusMonths(it) }
     }
     val formatter = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.ENGLISH)
 
@@ -198,6 +200,7 @@ private fun MonthPickerDialog(
 @Composable
 private fun SpendingTab(
     state: InsightsUiState,
+    onSeeAllCategories: () -> Unit = {},
     onSeeAllClick: () -> Unit = {},
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -252,6 +255,7 @@ private fun SpendingTab(
                     text = "See all",
                     style = MaterialTheme.typography.bodyMedium,
                     color = PocketGreen,
+                    modifier = Modifier.clickable { onSeeAllCategories() },
                 )
             }
 

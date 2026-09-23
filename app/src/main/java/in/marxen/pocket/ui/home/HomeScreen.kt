@@ -40,8 +40,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import `in`.marxen.pocket.R
 import `in`.marxen.pocket.core.date.asiaKolkataToday
-import `in`.marxen.pocket.ui.theme.PocketGreen
 import `in`.marxen.pocket.ui.theme.PocketBeige
+import `in`.marxen.pocket.ui.theme.PocketGreen
 import `in`.marxen.pocket.ui.theme.PocketText
 import `in`.marxen.pocket.ui.theme.PocketTextSecondary
 import java.time.YearMonth
@@ -74,7 +74,16 @@ fun HomeScreen(
     ),
 ) {
     val state by viewModel.uiState.collectAsState()
-    val today = asiaKolkataToday()
+    val today = remember { asiaKolkataToday() }
+    val greeting = remember {
+        val hour = java.time.LocalTime.now(java.time.ZoneId.of("Asia/Kolkata")).hour
+        when {
+            hour < 12 -> "morning"
+            hour < 17 -> "afternoon"
+            hour < 21 -> "evening"
+            else -> "night"
+        }
+    }
     var showMonthPicker by remember { mutableIntStateOf(0) }
 
     LazyColumn(
@@ -92,8 +101,9 @@ fun HomeScreen(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = "Good ${timeOfDay()}, \uD83D\uDC4B",
-                    style = MaterialTheme.typography.bodyLarge,
+                    text = "Good $greeting, \uD83D\uDC4B",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
                     color = PocketText,
                 )
                 Box(
@@ -116,7 +126,7 @@ fun HomeScreen(
         item {
                 Text(
                     text = state.userName.ifBlank { "User" }.split(" ").joinToString(" ") { word ->
-                        word.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+                        word.lowercase().replaceFirstChar { it.titlecase() }
                     },
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
@@ -147,53 +157,10 @@ fun HomeScreen(
         }
 
         item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = PocketGreen),
-            ) {
-                Box(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(20.dp)) {
-                        Text(
-                            text = state.totalExpensesFormatted,
-                            style = MaterialTheme.typography.displaySmall,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White,
-                        )
-                        Text(
-                            text = "spent this month",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.White.copy(alpha = 0.8f),
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                        ) {
-                            Column {
-                                Text(
-                                    text = state.totalIncomeFormatted,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = Color.White,
-                                )
-                                Text(
-                                    text = "Income",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = Color.White.copy(alpha = 0.7f),
-                                )
-                            }
-                        }
-                    }
-                    Text(
-                        text = "\uD83C\uDF3F",
-                        style = MaterialTheme.typography.displayLarge,
-                        modifier = Modifier
-                            .align(Alignment.CenterEnd)
-                            .padding(end = 16.dp),
-                    )
-                }
-            }
+            BalanceCard(
+                totalExpensesFormatted = state.totalExpensesFormatted,
+                totalIncomeFormatted = state.totalIncomeFormatted,
+            )
         }
 
         item {
@@ -260,12 +227,67 @@ fun HomeScreen(
     if (showMonthPicker > 0) {
         MonthPickerDialog(
             currentMonth = state.month,
+            earliestMonth = state.earliestMonth,
             onMonthSelected = { selectedMonth ->
                 viewModel.selectMonth(selectedMonth)
                 showMonthPicker = 0
             },
             onDismiss = { showMonthPicker = 0 },
         )
+    }
+}
+
+@Composable
+private fun BalanceCard(
+    totalExpensesFormatted: String,
+    totalIncomeFormatted: String,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = PocketGreen),
+    ) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(20.dp)) {
+                Text(
+                    text = totalExpensesFormatted,
+                    style = MaterialTheme.typography.displaySmall,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                )
+                Text(
+                    text = "spent this month",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White.copy(alpha = 0.8f),
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Column {
+                        Text(
+                            text = totalIncomeFormatted,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White,
+                        )
+                        Text(
+                            text = "Income",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.White.copy(alpha = 0.7f),
+                        )
+                    }
+                }
+            }
+            Text(
+                text = "\uD83C\uDF3F",
+                style = MaterialTheme.typography.displayLarge,
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(end = 16.dp),
+            )
+        }
     }
 }
 
@@ -312,6 +334,13 @@ private fun TransactionRow(txn: TransactionUi, onClick: () -> Unit) {
                 fontWeight = FontWeight.Medium,
                 color = PocketText,
             )
+            if (txn.subcategoryName != null) {
+                Text(
+                    text = txn.subcategoryName,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = PocketTextSecondary,
+                )
+            }
             if (txn.entity.merchant != null) {
                 Text(
                     text = txn.entity.merchant,
@@ -336,25 +365,23 @@ private fun TransactionRow(txn: TransactionUi, onClick: () -> Unit) {
     }
 }
 
-private fun timeOfDay(): String {
-    val hour = java.time.LocalTime.now(java.time.ZoneId.of("Asia/Kolkata")).hour
-    return when {
-        hour < 12 -> "morning"
-        hour < 17 -> "afternoon"
-        hour < 21 -> "evening"
-        else -> "night"
-    }
-}
 
 @Composable
 private fun MonthPickerDialog(
     currentMonth: YearMonth,
+    earliestMonth: YearMonth = YearMonth.now(),
     onMonthSelected: (YearMonth) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val months = remember {
+    val months = remember(earliestMonth) {
         val now = YearMonth.now()
-        (0L..11L).map { now.minusMonths(it) }
+        val monthsList = mutableListOf<YearMonth>()
+        var m = now
+        while (!m.isBefore(earliestMonth)) {
+            monthsList.add(m)
+            m = m.minusMonths(1)
+        }
+        monthsList
     }
     val formatter = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.ENGLISH)
 
