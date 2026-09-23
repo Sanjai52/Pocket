@@ -4,9 +4,8 @@ A personal expense manager for Android. Track daily spending by category and
 subcategory, browse a calendar of transactions, and review insights with
 category breakdowns and monthly trends — all offline, all on-device.
 
-| Launch splash | Home |
-|---|---|
-| ![Launch splash](docs/screenshots/splash.png) | ![Home](docs/screenshots/home.png) |
+
+![Home](docs/screenshots/home.png)
 
 ## Features
 
