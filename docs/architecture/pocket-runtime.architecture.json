@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Pocket Runtime Architecture",
+    "output": "pocket-runtime.architecture.html",
+    "quality_profile": "showcase",
+    "viewBox": [900, 720],
+    "views": [
+      { "id": "add-expense-path", "label": "Primary expense path", "focus": ["user", "main-activity", "navhost", "screens", "viewmodels", "repository", "room"], "note": "Follow one expense from tap to durable Room state." },
+      { "id": "backup-restore", "label": "Backup and restore", "focus": ["screens", "backup", "room", "prefs"], "note": "Snapshot and restore flow with preferences beside it." }
+    ]
+  },
+  "components": [
+    { "id": "android-os", "type": "external", "label": "Android OS", "sublabel": "splash, file picker", "pos": [40, 60], "size": [150, 64] },
+    { "id": "user", "type": "external", "label": "User", "sublabel": "taps, types", "pos": [40, 240], "size": [120, 64] },
+    { "id": "main-activity", "type": "frontend", "label": "MainActivity", "sublabel": "theme wiring, entry", "pos": [188, 240], "size": [140, 64] },
+    { "id": "navhost", "type": "frontend", "label": "PocketNavHost", "sublabel": "tabs, bottom bar, FAB", "pos": [356, 240], "size": [140, 64] },
+    { "id": "screens", "type": "frontend", "label": "Compose screens", "sublabel": "Home, Calendar, Insights", "pos": [524, 240], "size": [140, 64] },
+    { "id": "viewmodels", "type": "backend", "label": "ViewModels", "sublabel": "StateFlow uiState", "pos": [524, 420], "size": [140, 64] },
+    { "id": "repository", "type": "backend", "label": "TransactionRepository", "sublabel": "single data access", "pos": [356, 420], "size": [140, 64] },
+    { "id": "room", "type": "database", "label": "PocketDatabase", "sublabel": "Room v2, DAOs, seed", "pos": [356, 600], "size": [140, 60] },
+    { "id": "prefs", "type": "database", "label": "PocketPrefs", "sublabel": "DataStore", "pos": [524, 600], "size": [140, 60] },
+    { "id": "backup", "type": "backend", "label": "BackupManager", "sublabel": "JSON snapshot, CSV", "pos": [692, 600], "size": [140, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Pocket app process", "wraps": ["main-activity", "navhost", "screens", "viewmodels", "repository", "room", "prefs", "backup"] },
+    { "kind": "security-group", "label": "on-device sandbox", "wraps": ["room", "prefs"] }
+  ],
+  "connections": [
+    { "id": "user-launches", "from": "user", "to": "main-activity", "variant": "emphasis" },
+    { "id": "activity-to-nav", "from": "main-activity", "to": "navhost", "variant": "emphasis" },
+    { "id": "nav-to-screens", "from": "navhost", "to": "screens", "variant": "emphasis" },
+    { "id": "screens-to-vms", "from": "screens", "to": "viewmodels", "label": "collect uiState", "variant": "emphasis", "fromSide": "bottom", "toSide": "top", "labelAt": [540, 362] },
+    { "id": "vms-to-repo", "from": "viewmodels", "to": "repository", "variant": "emphasis" },
+    { "id": "repo-to-room", "from": "repository", "to": "room", "label": "DAO reads/writes", "variant": "emphasis", "fromSide": "bottom", "toSide": "top", "labelAt": [426, 542] },
+    { "id": "vms-read-prefs", "from": "viewmodels", "to": "prefs", "label": "theme, name", "fromSide": "bottom", "toSide": "top", "labelAt": [594, 542] },
+    { "id": "screens-trigger-backup", "from": "screens", "to": "backup", "label": "backup / export", "fromSide": "bottom", "toSide": "top", "via": [[594, 380], [762, 380], [762, 600]], "labelAt": [762, 490] },
+    { "id": "backup-snapshots", "from": "backup", "to": "room", "label": "snapshot / restore", "fromSide": "bottom", "toSide": "bottom", "via": [[762, 690], [426, 690]], "labelAt": [594, 690] },
+    { "id": "os-hosts-app", "from": "android-os", "to": "main-activity", "label": "splash, process", "fromSide": "bottom", "toSide": "top" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Interaction", "items": ["Single activity hosts the NavHost", "Bottom tabs switch with no transition", "StateFlow uiState per screen"] },
+    { "dot": "emerald", "title": "Data", "items": ["Room v2 holds transactions and subcategories", "DataStore holds theme and user name", "Repository is the single data access point"] },
+    { "dot": "rose", "title": "Safety", "items": ["JSON snapshot restores byte-identical state", "Room and prefs stay inside the app sandbox"] }
+  ]
+}
