@@ -23,3 +23,6 @@ releases/
 # OS
 .DS_Store
 Thumbs.db
+
+# JVM crash dumps (Gradle daemon hs_err/replay logs)
+*.log
