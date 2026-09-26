@@ -34,6 +34,9 @@ interface SubcategoryDao {
     @Query("SELECT * FROM subcategories WHERE category_id = :categoryId ORDER BY name ASC")
     fun getAllByCategoryId(categoryId: Long): Flow<List<SubcategoryEntity>>
 
+    @Query("SELECT * FROM subcategories ORDER BY name ASC")
+    suspend fun getAll(): List<SubcategoryEntity>
+
     @Query("SELECT * FROM subcategories WHERE is_hidden = 0 ORDER BY name ASC")
     fun getActive(): Flow<List<SubcategoryEntity>>
 }

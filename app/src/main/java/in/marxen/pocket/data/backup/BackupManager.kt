@@ -1,6 +1,7 @@
 package `in`.marxen.pocket.data.backup
 
 import androidx.room.withTransaction
+import `in`.marxen.pocket.core.money.paiseToRupees
 import `in`.marxen.pocket.data.local.PocketDatabase
 import `in`.marxen.pocket.data.local.entity.BudgetEntity
 import `in`.marxen.pocket.data.local.entity.CategoryEntity
@@ -65,13 +66,20 @@ class BackupManager {
     fun exportCsv(
         transactions: List<TransactionEntity>,
         categories: Map<Long, String>,
+        subcategories: Map<Long, String> = emptyMap(),
+        paymentMethods: Map<Long, String> = emptyMap(),
     ): String = buildString {
-        appendLine("Date,Type,Amount,Category,Merchant,Note")
+        appendLine("Date,Type,Amount,Category,Subcategory,Payment Method,Merchant,Note,Created At")
         for (t in transactions) {
-            val category = categories[t.categoryId].orEmpty()
+            val category = escapeCsv(categories[t.categoryId].orEmpty())
+            val subcategory = escapeCsv(t.subcategoryId?.let { subcategories[it] }.orEmpty())
+            val paymentMethod = escapeCsv(t.paymentMethodId?.let { paymentMethods[it] }.orEmpty())
             val merchant = t.merchant?.let { escapeCsv(it) }.orEmpty()
             val note = t.note?.let { escapeCsv(it) }.orEmpty()
-            appendLine("${t.transactionDate},${t.type},${t.amountPaise},${escapeCsv(category)},$merchant,$note")
+            appendLine(
+                "${t.transactionDate},${t.type},${paiseToRupees(t.amountPaise)}," +
+                    "$category,$subcategory,$paymentMethod,$merchant,$note,${t.createdAt}",
+            )
         }
     }
 

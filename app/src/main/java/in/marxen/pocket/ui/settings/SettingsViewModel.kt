@@ -100,9 +100,10 @@ class SettingsViewModel(
         viewModelScope.launch {
             try {
                 val transactions = database.transactionDao().getAll()
-                val categories = database.categoryDao().getAllSync().associateBy { it.id }
-                val categoryNames = categories.mapValues { it.value.name }
-                val csv = backupManager.exportCsv(transactions, categoryNames)
+                val categoryNames = database.categoryDao().getAllSync().associate { it.id to it.name }
+                val subcategoryNames = database.subcategoryDao().getAll().associate { it.id to it.name }
+                val paymentMethodNames = database.paymentMethodDao().getAll().associate { it.id to it.name }
+                val csv = backupManager.exportCsv(transactions, categoryNames, subcategoryNames, paymentMethodNames)
                 context.contentResolver.openOutputStream(uri)?.use { out ->
                     out.write(csv.toByteArray())
                 }
