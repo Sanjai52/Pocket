@@ -282,13 +282,20 @@ fun PocketNavHost(appContainer: AppContainer) {
                 popExitTransition = noExit,
             ) {
                 InsightsScreen(
-                    onSeeAllCategories = { navController.navigate(Routes.CATEGORY_LIST) },
+                    onSeeAllCategories = { month -> navController.navigate(Routes.categoryListRoute(month)) },
                 )
             }
-            composable(Routes.CATEGORY_LIST) {
+            composable(
+                route = Routes.CATEGORY_LIST,
+                arguments = listOf(navArgument("month") { type = NavType.StringType; defaultValue = java.time.YearMonth.now().toString() }),
+            ) { backStackEntry ->
+                val month = backStackEntry.arguments?.getString("month")?.let {
+                    java.time.YearMonth.parse(it)
+                } ?: java.time.YearMonth.now()
                 CategoryListScreen(
+                    month = month,
                     onCategoryClick = { categoryId, categoryName ->
-                        navController.navigate(Routes.categoryDetailRoute(categoryId, categoryName))
+                        navController.navigate(Routes.categoryDetailRoute(categoryId, categoryName, month))
                     },
                     onBack = { navController.popBackStack() },
                 )
@@ -298,13 +305,18 @@ fun PocketNavHost(appContainer: AppContainer) {
                 arguments = listOf(
                     navArgument("categoryId") { type = NavType.LongType },
                     navArgument("name") { type = NavType.StringType; defaultValue = "Category" },
+                    navArgument("month") { type = NavType.StringType; defaultValue = java.time.YearMonth.now().toString() },
                 ),
             ) { backStackEntry ->
                 val categoryId = backStackEntry.arguments?.getLong("categoryId") ?: 0L
                 val categoryName = backStackEntry.arguments?.getString("name") ?: "Category"
+                val month = backStackEntry.arguments?.getString("month")?.let {
+                    java.time.YearMonth.parse(it)
+                } ?: java.time.YearMonth.now()
                 CategoryDetailScreen(
                     categoryId = categoryId,
                     categoryName = categoryName,
+                    month = month,
                     onBack = { navController.popBackStack() },
                 )
             }

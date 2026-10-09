@@ -63,11 +63,13 @@ private val subcategoryColors = listOf(
 fun CategoryDetailScreen(
     categoryId: Long,
     categoryName: String,
+    month: YearMonth,
     onBack: () -> Unit = {},
     viewModel: CategoryDetailViewModel = viewModel(
         factory = CategoryDetailViewModel.Factory(
             (LocalContext.current.applicationContext as `in`.marxen.pocket.PocketApplication).container.repository,
             categoryId,
+            month,
         ),
     ),
 ) {
@@ -106,7 +108,7 @@ fun CategoryDetailScreen(
             }
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = YearMonth.now().month.name + " " + YearMonth.now().year,
+                text = month.month.name + " " + month.year,
                 style = MaterialTheme.typography.bodyLarge,
                 color = PocketTextSecondary,
                 textAlign = TextAlign.Center,
@@ -166,36 +168,32 @@ fun CategoryDetailScreen(
             }
 
             items(state.subcategoryBreakdown) { item ->
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .padding(vertical = 10.dp, horizontal = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Row(
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(12.dp)
-                                .clip(CircleShape)
-                                .background(item.color)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = item.name,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = PocketText,
-                            modifier = Modifier.weight(1f),
-                        )
-                        Text(
-                            text = item.formattedAmount,
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.SemiBold,
-                            color = PocketGreen,
-                        )
-                    }
+                            .size(12.dp)
+                            .clip(CircleShape)
+                            .background(item.color)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = item.name,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = PocketText,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Text(
+                        text = item.formattedAmount,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = PocketGreen,
+                    )
                 }
             }
         } else {

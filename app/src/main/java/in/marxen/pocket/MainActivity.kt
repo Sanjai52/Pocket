@@ -16,7 +16,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        appContainer = AppContainer(applicationContext)
+        appContainer = (application as PocketApplication).container
 
         setContent {
             val theme by appContainer.prefs.theme.collectAsState(initial = "light")

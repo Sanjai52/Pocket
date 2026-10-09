@@ -68,11 +68,13 @@ private val categoryIcons = mapOf(
 
 @Composable
 fun CategoryListScreen(
+    month: YearMonth,
     onCategoryClick: (Long, String) -> Unit = { _, _ -> },
     onBack: () -> Unit = {},
     viewModel: CategoryListViewModel = viewModel(
         factory = CategoryListViewModel.Factory(
             (LocalContext.current.applicationContext as `in`.marxen.pocket.PocketApplication).container.repository,
+            month,
         ),
     ),
 ) {
@@ -157,53 +159,48 @@ fun CategoryListScreen(
                 val iconRes = categoryIcons[catKey] ?: R.drawable.ic_other
                 val iconColor = categoryColors[catKey] ?: Color(0xFF607D8B)
 
-                Card(
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onCategoryClick(category.categoryId, category.name) },
-                    shape = RoundedCornerShape(12.dp),
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable { onCategoryClick(category.categoryId, category.name) }
+                        .padding(vertical = 10.dp, horizontal = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Row(
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
+                            .size(40.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(iconColor.copy(alpha = 0.15f)),
+                        contentAlignment = Alignment.Center,
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(iconColor.copy(alpha = 0.15f)),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(
-                                painter = painterResource(iconRes),
-                                contentDescription = category.name,
-                                tint = iconColor,
-                                modifier = Modifier.size(22.dp),
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = category.name,
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.SemiBold,
-                                color = PocketText,
-                            )
-                            Text(
-                                text = "${(category.percentage * 100).toInt()}% of total",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = PocketTextSecondary,
-                            )
-                        }
-                        Text(
-                            text = category.formattedAmount,
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = PocketGreen,
+                        Icon(
+                            painter = painterResource(iconRes),
+                            contentDescription = category.name,
+                            tint = iconColor,
+                            modifier = Modifier.size(22.dp),
                         )
                     }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = category.name,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            color = PocketText,
+                        )
+                        Text(
+                            text = "${(category.percentage * 100).toInt()}% of total",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = PocketTextSecondary,
+                        )
+                    }
+                    Text(
+                        text = category.formattedAmount,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = PocketGreen,
+                    )
                 }
             }
         } else {

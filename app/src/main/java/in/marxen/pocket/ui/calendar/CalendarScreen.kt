@@ -28,8 +28,15 @@ import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -77,7 +84,21 @@ fun CalendarScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val onDateSelected = remember(viewModel) { { date: LocalDate -> viewModel.selectDate(date) } }
+    val snackbarHostState = remember { SnackbarHostState() }
 
+    LaunchedEffect(Unit) {
+        viewModel.deletedEvent.collect {
+            val result = snackbarHostState.showSnackbar(
+                message = "Transaction deleted",
+                actionLabel = "Undo",
+            )
+            if (result == SnackbarResult.ActionPerformed) {
+                viewModel.undoDelete()
+            }
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -184,7 +205,20 @@ fun CalendarScreen(
             }
         } else {
             items(state.selectedDayTransactions, key = { it.entity.id }) { txn ->
-                TransactionRow(txn = txn, onClick = { onTransactionClick(txn.entity.id) })
+                val dismissState = rememberSwipeToDismissBoxState()
+                LaunchedEffect(dismissState.currentValue) {
+                    if (dismissState.currentValue == SwipeToDismissBoxValue.StartToEnd) {
+                        viewModel.deleteTransaction(txn.entity)
+                    }
+                }
+                SwipeToDismissBox(
+                    state = dismissState,
+                    enableDismissFromStartToEnd = true,
+                    enableDismissFromEndToStart = false,
+                    backgroundContent = {},
+                ) {
+                    TransactionRow(txn = txn, onClick = { onTransactionClick(txn.entity.id) })
+                }
             }
         }
 
@@ -206,6 +240,12 @@ fun CalendarScreen(
         }
 
         item { Spacer(modifier = Modifier.height(80.dp)) }
+    }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 96.dp),
+        )
     }
 }
 

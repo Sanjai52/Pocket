@@ -32,9 +32,10 @@ data class CategoryDetailUiState(
 class CategoryDetailViewModel(
     private val repository: TransactionRepository,
     private val categoryId: Long,
+    initialMonth: YearMonth,
 ) : ViewModel() {
 
-    private val _selectedMonth = MutableStateFlow(YearMonth.now())
+    private val _selectedMonth = MutableStateFlow(initialMonth)
 
     private val subcategoryColors = listOf(
         Color(0xFFFF9800),
@@ -102,10 +103,11 @@ class CategoryDetailViewModel(
     class Factory(
         private val repository: TransactionRepository,
         private val categoryId: Long,
+        private val initialMonth: YearMonth,
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return CategoryDetailViewModel(repository, categoryId) as T
+            return CategoryDetailViewModel(repository, categoryId, initialMonth) as T
         }
     }
 }

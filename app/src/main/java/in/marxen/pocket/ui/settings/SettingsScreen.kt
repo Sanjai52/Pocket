@@ -24,6 +24,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -51,10 +52,13 @@ import `in`.marxen.pocket.ui.theme.PocketTextSecondary
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel) {
     val theme by viewModel.theme.collectAsState()
+    val userName by viewModel.userName.collectAsState()
     val backupMessage by viewModel.backupMessage.collectAsState()
 
     var showThemeDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showNameDialog by remember { mutableStateOf(false) }
+    var nameDraft by remember { mutableStateOf("") }
     val snackbarHostState = remember { SnackbarHostState() }
 
     val backupLauncher = rememberLauncherForActivityResult(
@@ -96,6 +100,21 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 16.dp),
             )
+
+            SectionHeader("Profile")
+
+            SettingsRowWithIcon(
+                emoji = "\uD83D\uDC64",
+                iconBackground = Color(0xFF1A5C38),
+                title = "Name",
+                value = userName.ifBlank { "Not set" },
+                onClick = {
+                    nameDraft = userName
+                    showNameDialog = true
+                },
+            )
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
             SectionHeader("Appearance")
 
@@ -183,6 +202,35 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             currentTheme = theme,
             onSelect = { viewModel.setTheme(it) },
             onDismiss = { showThemeDialog = false },
+        )
+    }
+
+    if (showNameDialog) {
+        AlertDialog(
+            onDismissRequest = { showNameDialog = false },
+            title = { Text("Your name") },
+            text = {
+                OutlinedTextField(
+                    value = nameDraft,
+                    onValueChange = { nameDraft = it },
+                    label = { Text("Name") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.setUserName(nameDraft)
+                    showNameDialog = false
+                }) {
+                    Text("Save")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showNameDialog = false }) {
+                    Text("Cancel")
+                }
+            },
         )
     }
 

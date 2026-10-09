@@ -97,7 +97,7 @@ Release builds are signed with `app/pocket-release.jks` (configured in
 cp app/build/outputs/apk/release/app-release.apk releases/Pocket-v1.0-release.apk
 ```
 
-Current release: `releases/Pocket-v1.0-release.apk` (v1.0, versionCode 1).
+Current release: `releases/Pocket-v1.2-release.apk` (v1.2, versionCode 3).
 
 ## Performance Notes
 

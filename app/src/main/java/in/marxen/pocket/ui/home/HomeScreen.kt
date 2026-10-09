@@ -22,8 +22,15 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -85,7 +92,21 @@ fun HomeScreen(
         }
     }
     var showMonthPicker by remember { mutableIntStateOf(0) }
+    val snackbarHostState = remember { SnackbarHostState() }
 
+    LaunchedEffect(Unit) {
+        viewModel.deletedEvent.collect { event ->
+            val result = snackbarHostState.showSnackbar(
+                message = "Transaction deleted",
+                actionLabel = "Undo",
+            )
+            if (result == SnackbarResult.ActionPerformed) {
+                viewModel.undoDelete()
+            }
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -197,10 +218,23 @@ fun HomeScreen(
             }
         } else {
             items(state.todayTransactions, key = { it.entity.id }) { txn ->
-                TransactionRow(
-                    txn = txn,
-                    onClick = { onTransactionClick(txn.entity.id) },
-                )
+                val dismissState = rememberSwipeToDismissBoxState()
+                LaunchedEffect(dismissState.currentValue) {
+                    if (dismissState.currentValue == SwipeToDismissBoxValue.StartToEnd) {
+                        viewModel.deleteTransaction(txn.entity)
+                    }
+                }
+                SwipeToDismissBox(
+                    state = dismissState,
+                    enableDismissFromStartToEnd = true,
+                    enableDismissFromEndToStart = false,
+                    backgroundContent = {},
+                ) {
+                    TransactionRow(
+                        txn = txn,
+                        onClick = { onTransactionClick(txn.entity.id) },
+                    )
+                }
             }
         }
 
@@ -222,6 +256,12 @@ fun HomeScreen(
         }
 
         item { Spacer(modifier = Modifier.height(80.dp)) }
+    }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 96.dp),
+        )
     }
 
     if (showMonthPicker > 0) {

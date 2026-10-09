@@ -34,6 +34,12 @@ class SettingsViewModel(
         "system",
     )
 
+    val userName: StateFlow<String> = prefs.userName.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        "",
+    )
+
     val biometricEnabled: StateFlow<Boolean> = prefs.biometricEnabled.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
@@ -48,6 +54,18 @@ class SettingsViewModel(
 
     fun setTheme(theme: String) {
         viewModelScope.launch { prefs.setTheme(theme) }
+    }
+
+    fun setUserName(name: String) {
+        val trimmed = name.trim()
+        val normalized = if (trimmed.isBlank()) {
+            trimmed
+        } else {
+            trimmed.split(" ").joinToString(" ") { word ->
+                word.lowercase().replaceFirstChar { it.titlecase() }
+            }
+        }
+        viewModelScope.launch { prefs.setUserName(normalized) }
     }
 
     fun toggleBiometric(enabled: Boolean) {

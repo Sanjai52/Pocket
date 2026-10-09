@@ -11,13 +11,17 @@ import `in`.marxen.pocket.data.local.entity.SubcategoryEntity
 import `in`.marxen.pocket.data.local.entity.TransactionEntity
 import `in`.marxen.pocket.data.repository.TransactionRepository
 import `in`.marxen.pocket.ui.home.TransactionUi
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import java.time.Instant
 import java.time.LocalDate
@@ -142,6 +146,25 @@ class CalendarViewModel(private val repository: TransactionRepository) : ViewMod
 
     fun nextMonth() {
         _month.value = _month.value.plusMonths(1)
+    }
+
+    private var lastDeleted: TransactionEntity? = null
+
+    private val _deletedEvent = MutableSharedFlow<Unit>()
+    val deletedEvent: SharedFlow<Unit> = _deletedEvent.asSharedFlow()
+
+    fun deleteTransaction(txn: TransactionEntity) {
+        lastDeleted = txn
+        viewModelScope.launch {
+            repository.deleteTransaction(txn)
+            _deletedEvent.emit(Unit)
+        }
+    }
+
+    fun undoDelete() {
+        val txn = lastDeleted ?: return
+        lastDeleted = null
+        viewModelScope.launch { repository.insertTransaction(txn.copy(id = 0)) }
     }
 
     class Factory(private val repository: TransactionRepository) : ViewModelProvider.Factory {

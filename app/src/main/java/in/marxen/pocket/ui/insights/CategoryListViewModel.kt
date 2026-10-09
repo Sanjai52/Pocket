@@ -28,8 +28,11 @@ data class CategoryListUiState(
     val categoryItems: List<CategoryListItem> = emptyList(),
 )
 
-class CategoryListViewModel(private val repository: TransactionRepository) : ViewModel() {
-    private val month = YearMonth.now()
+class CategoryListViewModel(
+    private val repository: TransactionRepository,
+    initialMonth: YearMonth,
+) : ViewModel() {
+    private val month = initialMonth
 
     val uiState: StateFlow<CategoryListUiState> = combine(
         repository.getTotalExpenses(month),
@@ -55,9 +58,12 @@ class CategoryListViewModel(private val repository: TransactionRepository) : Vie
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), CategoryListUiState())
 
-    class Factory(private val repository: TransactionRepository) : ViewModelProvider.Factory {
+    class Factory(
+        private val repository: TransactionRepository,
+        private val initialMonth: YearMonth,
+    ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            CategoryListViewModel(repository) as T
+            CategoryListViewModel(repository, initialMonth) as T
     }
 }

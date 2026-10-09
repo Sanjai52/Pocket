@@ -11,7 +11,10 @@ import `in`.marxen.pocket.data.local.entity.TransactionEntity
 import `in`.marxen.pocket.data.prefs.PocketPrefs
 import `in`.marxen.pocket.data.repository.TransactionRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -141,6 +144,25 @@ class HomeViewModel(
 
     fun selectMonth(month: YearMonth) {
         _selectedMonth.value = month
+    }
+
+    private var lastDeleted: TransactionEntity? = null
+
+    private val _deletedEvent = MutableSharedFlow<Unit>()
+    val deletedEvent: SharedFlow<Unit> = _deletedEvent.asSharedFlow()
+
+    fun deleteTransaction(txn: TransactionEntity) {
+        lastDeleted = txn
+        viewModelScope.launch {
+            repository.deleteTransaction(txn)
+            _deletedEvent.emit(Unit)
+        }
+    }
+
+    fun undoDelete() {
+        val txn = lastDeleted ?: return
+        lastDeleted = null
+        viewModelScope.launch { repository.insertTransaction(txn.copy(id = 0)) }
     }
 
     private fun TransactionEntity.toUi(cats: Map<Long, CategoryEntity>, subs: Map<Long, SubcategoryEntity>): TransactionUi {
