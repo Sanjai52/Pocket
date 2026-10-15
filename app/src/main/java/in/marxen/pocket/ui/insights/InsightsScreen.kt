@@ -322,36 +322,6 @@ private fun SpendingTab(
             )
         }
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9)),
-        ) {
-            Row(
-                modifier = Modifier.padding(16.dp),
-                verticalAlignment = Alignment.Top,
-            ) {
-                Text(
-                    text = "💡",
-                    style = MaterialTheme.typography.titleLarge,
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Column {
-                    Text(
-                        text = "Insight",
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        color = PocketGreen,
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "You spent 34% more on food during weekends.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = PocketText,
-                    )
-                }
-            }
-        }
     }
 }
 
