@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import `in`.marxen.pocket.R
 import `in`.marxen.pocket.ui.theme.PocketBeige
+import `in`.marxen.pocket.ui.theme.PocketCard
 import `in`.marxen.pocket.ui.theme.PocketGreen
 import `in`.marxen.pocket.ui.theme.PocketText
 import `in`.marxen.pocket.ui.theme.PocketTextSecondary
@@ -159,14 +160,18 @@ fun CategoryListScreen(
                 val iconRes = categoryIcons[catKey] ?: R.drawable.ic_other
                 val iconColor = categoryColors[catKey] ?: Color(0xFF607D8B)
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .clickable { onCategoryClick(category.categoryId, category.name) }
-                        .padding(vertical = 10.dp, horizontal = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = PocketCard),
+                    onClick = { onCategoryClick(category.categoryId, category.name) },
                 ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 14.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
                     Box(
                         modifier = Modifier
                             .size(40.dp)
@@ -201,6 +206,7 @@ fun CategoryListScreen(
                         fontWeight = FontWeight.Bold,
                         color = PocketGreen,
                     )
+                    }
                 }
             }
         } else {
@@ -208,6 +214,7 @@ fun CategoryListScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = PocketCard),
                 ) {
                     Text(
                         text = "No expenses this month",

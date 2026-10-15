@@ -24,7 +24,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -35,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import `in`.marxen.pocket.R
 import `in`.marxen.pocket.ui.theme.PocketBeige
+import `in`.marxen.pocket.ui.theme.PocketCard
 import `in`.marxen.pocket.ui.theme.PocketGreen
 import `in`.marxen.pocket.ui.theme.PocketText
 import `in`.marxen.pocket.ui.theme.PocketTextSecondary
@@ -120,9 +120,11 @@ fun SubcategoryTransactionsScreen(
                 ) {
                     Column {
                         Text(
-                            text = "Subcategory Total",
+                            text = subcategoryName,
                             style = MaterialTheme.typography.labelLarge,
                             color = Color.White.copy(alpha = 0.8f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
@@ -138,44 +140,44 @@ fun SubcategoryTransactionsScreen(
 
         if (state.rows.isNotEmpty()) {
             items(state.rows, key = { it.id }) { row ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .clickable { onTransactionClick(row.id) }
-                        .padding(vertical = 10.dp, horizontal = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                val displayTitle = if (row.title == "Expense") subcategoryName else row.title
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = PocketCard),
+                    onClick = { onTransactionClick(row.id) },
                 ) {
-                    Column(modifier = Modifier.weight(1f)) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 14.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = displayTitle,
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                color = PocketText,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = row.dateLabel,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = PocketTextSecondary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
                         Text(
-                            text = row.title,
+                            text = row.amountFormatted,
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.SemiBold,
-                            color = PocketText,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        Text(
-                            text = "$categoryName • $subcategoryName",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = PocketTextSecondary,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        Text(
-                            text = "${row.dateLabel} • ${row.timeLabel}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = PocketTextSecondary,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
+                            color = PocketGreen,
                         )
                     }
-                    Text(
-                        text = row.amountFormatted,
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        color = PocketGreen,
-                    )
                 }
             }
         } else {
@@ -183,6 +185,7 @@ fun SubcategoryTransactionsScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = PocketCard),
                 ) {
                     Text(
                         text = "No spending in $subcategoryName this month",

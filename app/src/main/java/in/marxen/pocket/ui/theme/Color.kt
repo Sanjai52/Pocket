@@ -10,6 +10,8 @@ val PocketGreenDark = Color(0xFF14472E)
 // Background & surface
 val PocketBeige = Color(0xFFF5F0E6)
 val PocketWhite = Color(0xFFFFFFFF)
+val PocketCard = Color(0xFFFDFBF5)
+val PocketHomeCard = Color(0xFFE9E3D6)
 
 // Text
 val PocketText = Color(0xFF1A1A1A)

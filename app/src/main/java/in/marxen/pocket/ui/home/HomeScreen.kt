@@ -48,6 +48,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import `in`.marxen.pocket.R
 import `in`.marxen.pocket.core.date.asiaKolkataToday
 import `in`.marxen.pocket.ui.theme.PocketBeige
+import `in`.marxen.pocket.ui.theme.PocketHomeCard
 import `in`.marxen.pocket.ui.theme.PocketGreen
 import `in`.marxen.pocket.ui.theme.PocketText
 import `in`.marxen.pocket.ui.theme.PocketTextSecondary
@@ -336,14 +337,18 @@ private fun TransactionRow(txn: TransactionUi, onClick: () -> Unit) {
     val catColor = txn.categoryColor?.let { Color(it.toULong()) } ?: PocketGreen
     val iconRes = categoryIcons[txn.categoryIcon?.lowercase()] ?: categoryIcons[txn.categoryName.lowercase()]
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .clickable(onClick = onClick)
-            .padding(vertical = 10.dp, horizontal = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = PocketHomeCard),
+        onClick = onClick,
     ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
         Box(
             modifier = Modifier
                 .size(40.dp)
@@ -396,11 +401,14 @@ private fun TransactionRow(txn: TransactionUi, onClick: () -> Unit) {
                 fontWeight = FontWeight.SemiBold,
                 color = PocketText,
             )
-            Text(
-                text = txn.entity.note ?: "-",
-                style = MaterialTheme.typography.bodySmall,
-                color = PocketTextSecondary,
-            )
+            if (!txn.entity.note.isNullOrBlank()) {
+                Text(
+                    text = txn.entity.note,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = PocketTextSecondary,
+                )
+            }
+        }
         }
     }
 }

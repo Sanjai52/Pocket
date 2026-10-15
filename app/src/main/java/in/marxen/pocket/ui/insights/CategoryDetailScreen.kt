@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import `in`.marxen.pocket.R
 import `in`.marxen.pocket.ui.theme.PocketBeige
+import `in`.marxen.pocket.ui.theme.PocketCard
 import `in`.marxen.pocket.ui.theme.PocketGreen
 import `in`.marxen.pocket.ui.theme.PocketText
 import `in`.marxen.pocket.ui.theme.PocketTextSecondary
@@ -169,35 +170,39 @@ fun CategoryDetailScreen(
             }
 
             items(state.subcategoryBreakdown) { item ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .clickable(enabled = item.subcategoryId != null) {
-                            item.subcategoryId?.let { onSubcategoryClick(it, item.name) }
-                        }
-                        .padding(vertical = 10.dp, horizontal = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = PocketCard),
+                    onClick = { item.subcategoryId?.let { onSubcategoryClick(it, item.name) } },
+                    enabled = item.subcategoryId != null,
                 ) {
-                    Box(
+                    Row(
                         modifier = Modifier
-                            .size(12.dp)
-                            .clip(CircleShape)
-                            .background(item.color)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = item.name,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = PocketText,
-                        modifier = Modifier.weight(1f),
-                    )
-                    Text(
-                        text = item.formattedAmount,
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        color = PocketGreen,
-                    )
+                            .fillMaxWidth()
+                            .padding(horizontal = 14.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(12.dp)
+                                .clip(CircleShape)
+                                .background(item.color)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = item.name,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = PocketText,
+                            modifier = Modifier.weight(1f),
+                        )
+                        Text(
+                            text = item.formattedAmount,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            color = PocketGreen,
+                        )
+                    }
                 }
             }
         } else {
@@ -205,6 +210,7 @@ fun CategoryDetailScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = PocketCard),
                 ) {
                     Text(
                         text = "No subcategory expenses this month",
