@@ -13,9 +13,12 @@ object Routes {
     const val SETTINGS = "settings"
     const val CATEGORY_LIST = "insights/categories?month={month}"
     const val CATEGORY_DETAIL = "insights/categories/{categoryId}?name={name}&month={month}"
+    const val SUBCATEGORY_TRANSACTIONS = "insights/categories/{categoryId}/subcategories/{subcategoryId}?categoryName={categoryName}&subcategoryName={subcategoryName}&month={month}"
 
     fun editRoute(transactionId: Long) = "expense/edit/$transactionId"
     fun categoryListRoute(month: YearMonth = YearMonth.now()) = "insights/categories?month=$month"
     fun categoryDetailRoute(categoryId: Long, categoryName: String, month: YearMonth = YearMonth.now()) =
         "insights/categories/$categoryId?name=${android.net.Uri.encode(categoryName)}&month=$month"
+    fun subcategoryTransactionsRoute(categoryId: Long, categoryName: String, subcategoryId: Long, subcategoryName: String, month: YearMonth = YearMonth.now()) =
+        "insights/categories/$categoryId/subcategories/$subcategoryId?categoryName=${android.net.Uri.encode(categoryName)}&subcategoryName=${android.net.Uri.encode(subcategoryName)}&month=$month"
 }

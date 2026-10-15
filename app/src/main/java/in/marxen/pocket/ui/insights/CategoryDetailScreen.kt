@@ -65,6 +65,7 @@ fun CategoryDetailScreen(
     categoryName: String,
     month: YearMonth,
     onBack: () -> Unit = {},
+    onSubcategoryClick: (subcategoryId: Long, subcategoryName: String) -> Unit = { _, _ -> },
     viewModel: CategoryDetailViewModel = viewModel(
         factory = CategoryDetailViewModel.Factory(
             (LocalContext.current.applicationContext as `in`.marxen.pocket.PocketApplication).container.repository,
@@ -172,6 +173,9 @@ fun CategoryDetailScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(12.dp))
+                        .clickable(enabled = item.subcategoryId != null) {
+                            item.subcategoryId?.let { onSubcategoryClick(it, item.name) }
+                        }
                         .padding(vertical = 10.dp, horizontal = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {

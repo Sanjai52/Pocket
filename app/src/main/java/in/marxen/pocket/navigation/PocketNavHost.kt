@@ -56,6 +56,7 @@ import `in`.marxen.pocket.ui.home.HomeScreen
 import `in`.marxen.pocket.ui.insights.CategoryDetailScreen
 import `in`.marxen.pocket.ui.insights.CategoryListScreen
 import `in`.marxen.pocket.ui.insights.InsightsScreen
+import `in`.marxen.pocket.ui.insights.SubcategoryTransactionsScreen
 import `in`.marxen.pocket.ui.settings.SettingsScreen
 import `in`.marxen.pocket.ui.settings.SettingsViewModel
 import `in`.marxen.pocket.ui.splash.SplashScreen
@@ -318,6 +319,44 @@ fun PocketNavHost(appContainer: AppContainer) {
                     categoryName = categoryName,
                     month = month,
                     onBack = { navController.popBackStack() },
+                    onSubcategoryClick = { subcategoryId, subcategoryName ->
+                        navController.navigate(
+                            Routes.subcategoryTransactionsRoute(
+                                categoryId,
+                                categoryName,
+                                subcategoryId,
+                                subcategoryName,
+                                month,
+                            ),
+                        )
+                    },
+                )
+            }
+            composable(
+                route = Routes.SUBCATEGORY_TRANSACTIONS,
+                arguments = listOf(
+                    navArgument("categoryId") { type = NavType.LongType },
+                    navArgument("subcategoryId") { type = NavType.LongType },
+                    navArgument("categoryName") { type = NavType.StringType; defaultValue = "Category" },
+                    navArgument("subcategoryName") { type = NavType.StringType; defaultValue = "Subcategory" },
+                    navArgument("month") { type = NavType.StringType; defaultValue = java.time.YearMonth.now().toString() },
+                ),
+            ) { backStackEntry ->
+                val categoryId = backStackEntry.arguments?.getLong("categoryId") ?: 0L
+                val subcategoryId = backStackEntry.arguments?.getLong("subcategoryId") ?: 0L
+                val categoryName = backStackEntry.arguments?.getString("categoryName") ?: "Category"
+                val subcategoryName = backStackEntry.arguments?.getString("subcategoryName") ?: "Subcategory"
+                val month = backStackEntry.arguments?.getString("month")?.let {
+                    java.time.YearMonth.parse(it)
+                } ?: java.time.YearMonth.now()
+                SubcategoryTransactionsScreen(
+                    categoryId = categoryId,
+                    categoryName = categoryName,
+                    subcategoryId = subcategoryId,
+                    subcategoryName = subcategoryName,
+                    month = month,
+                    onBack = { navController.popBackStack() },
+                    onTransactionClick = { id -> navController.navigate(Routes.editRoute(id)) },
                 )
             }
             composable(
