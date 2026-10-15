@@ -63,6 +63,9 @@ interface TransactionDao {
     @Query("SELECT subcategory_id, SUM(amount_paise) as total FROM transactions WHERE type = 'EXPENSE' AND category_id = :categoryId AND transaction_date BETWEEN :start AND :end AND subcategory_id IS NOT NULL GROUP BY subcategory_id ORDER BY total DESC")
     fun subcategoryTotals(categoryId: Long, start: LocalDate, end: LocalDate): Flow<List<SubcategoryTotal>>
 
+    @Query("SELECT * FROM transactions WHERE category_id = :categoryId AND subcategory_id = :subcategoryId AND transaction_date BETWEEN :start AND :end ORDER BY transaction_date DESC, created_at DESC")
+    fun getByCategoryAndSubcategory(categoryId: Long, subcategoryId: Long, start: LocalDate, end: LocalDate): Flow<List<TransactionEntity>>
+
     @Query("SELECT MIN(transaction_date) FROM transactions")
     suspend fun getEarliestTransactionDate(): LocalDate?
 }

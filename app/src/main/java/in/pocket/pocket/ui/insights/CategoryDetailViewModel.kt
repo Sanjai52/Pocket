@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.stateIn
 import java.time.YearMonth
 
 data class SubcategoryBreakdown(
+    val subcategoryId: Long?,
     val name: String,
     val color: Color,
     val amount: Long,
@@ -70,6 +71,7 @@ class CategoryDetailViewModel(
                     val sub = subMap[st.subcategoryId]
                     breakdown.add(
                         SubcategoryBreakdown(
+                            subcategoryId = st.subcategoryId,
                             name = sub?.name ?: "Unknown",
                             color = subcategoryColors[index % subcategoryColors.size],
                             amount = st.total,
@@ -82,6 +84,7 @@ class CategoryDetailViewModel(
                 if (unassigned > 0) {
                     breakdown.add(
                         SubcategoryBreakdown(
+                            subcategoryId = null,
                             name = "Uncategorized",
                             color = Color(0xFF607D8B),
                             amount = unassigned,

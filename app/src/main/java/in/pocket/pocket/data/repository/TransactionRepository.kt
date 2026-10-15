@@ -87,6 +87,9 @@ class TransactionRepository(
     fun getSubcategoryTotals(categoryId: Long, month: YearMonth): Flow<List<SubcategoryTotal>> =
         transactionDao.subcategoryTotals(categoryId, month.atDay(1), month.atEndOfMonth())
 
+    fun getTransactionsBySubcategory(categoryId: Long, subcategoryId: Long, month: YearMonth): Flow<List<TransactionEntity>> =
+        transactionDao.getByCategoryAndSubcategory(categoryId, subcategoryId, month.atDay(1), month.atEndOfMonth())
+
     fun getAllActiveSubcategories(): Flow<List<SubcategoryEntity>> =
         subcategoryDao.getActive()
 

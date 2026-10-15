@@ -25,6 +25,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -308,14 +310,18 @@ private fun TransactionRow(txn: TransactionUi, onClick: () -> Unit) {
     val catColor = txn.categoryColor?.let { Color(it.toULong()) } ?: PocketGreen
     val iconRes = categoryIcons[txn.categoryIcon?.lowercase()] ?: categoryIcons[txn.categoryName.lowercase()]
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .clickable(onClick = onClick)
-            .padding(vertical = 10.dp, horizontal = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        onClick = onClick,
     ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
         Box(
             modifier = Modifier
                 .size(40.dp)
@@ -361,11 +367,15 @@ private fun TransactionRow(txn: TransactionUi, onClick: () -> Unit) {
                 fontWeight = FontWeight.SemiBold,
                 color = PocketText,
             )
-            Text(
-                text = txn.subcategoryName ?: txn.entity.note ?: "-",
-                style = MaterialTheme.typography.bodySmall,
-                color = PocketTextSecondary,
-            )
+            val subLine = txn.subcategoryName ?: txn.entity.note?.takeIf { it.isNotBlank() }
+            if (subLine != null) {
+                Text(
+                    text = subLine,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = PocketTextSecondary,
+                )
+            }
+        }
         }
     }
 }
