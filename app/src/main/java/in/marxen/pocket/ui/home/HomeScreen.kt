@@ -48,7 +48,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import `in`.marxen.pocket.R
 import `in`.marxen.pocket.core.date.asiaKolkataToday
 import `in`.marxen.pocket.ui.theme.PocketBeige
-import `in`.marxen.pocket.ui.theme.PocketHomeCard
 import `in`.marxen.pocket.ui.theme.PocketGreen
 import `in`.marxen.pocket.ui.theme.PocketText
 import `in`.marxen.pocket.ui.theme.PocketTextSecondary
@@ -340,7 +339,7 @@ private fun TransactionRow(txn: TransactionUi, onClick: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = PocketHomeCard),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         onClick = onClick,
     ) {
         Row(

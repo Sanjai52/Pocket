@@ -34,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import `in`.marxen.pocket.R
 import `in`.marxen.pocket.ui.theme.PocketBeige
-import `in`.marxen.pocket.ui.theme.PocketCard
 import `in`.marxen.pocket.ui.theme.PocketGreen
 import `in`.marxen.pocket.ui.theme.PocketText
 import `in`.marxen.pocket.ui.theme.PocketTextSecondary
@@ -144,7 +143,7 @@ fun SubcategoryTransactionsScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = PocketCard),
+                    colors = CardDefaults.cardColors(containerColor = Color.Transparent),
                     onClick = { onTransactionClick(row.id) },
                 ) {
                     Row(
@@ -185,7 +184,7 @@ fun SubcategoryTransactionsScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = PocketCard),
+                    colors = CardDefaults.cardColors(containerColor = Color.Transparent),
                 ) {
                     Text(
                         text = "No spending in $subcategoryName this month",
