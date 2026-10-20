@@ -8,9 +8,12 @@ data class PocketBackup(
     val createdAt: String,
     val transactions: List<SerializableTransactionEntity>,
     val categories: List<SerializableCategoryEntity>,
+    val subcategories: List<SerializableSubcategoryEntity> = emptyList(),
     val paymentMethods: List<SerializablePaymentMethodEntity>,
     val budgets: List<SerializableBudgetEntity>,
     val recurringTransactions: List<SerializableRecurringTransactionEntity>,
+    val investmentTypes: List<SerializableInvestmentTypeEntity> = emptyList(),
+    val investmentEntries: List<SerializableInvestmentEntryEntity> = emptyList(),
 )
 
 @Serializable
@@ -19,6 +22,7 @@ data class SerializableTransactionEntity(
     val type: String,
     val amountPaise: Long,
     val categoryId: Long,
+    val subcategoryId: Long? = null,
     val paymentMethodId: Long?,
     @Serializable(with = LocalDateSerializer::class)
     val transactionDate: java.time.LocalDate,
@@ -36,6 +40,19 @@ data class SerializableCategoryEntity(
     val name: String,
     val icon: String?,
     val color: Long?,
+    val isHidden: Boolean,
+    @Serializable(with = InstantSerializer::class)
+    val createdAt: java.time.Instant,
+    @Serializable(with = InstantSerializer::class)
+    val updatedAt: java.time.Instant,
+)
+
+@Serializable
+data class SerializableSubcategoryEntity(
+    val id: Long,
+    val name: String,
+    val categoryId: Long,
+    val systemKey: String?,
     val isHidden: Boolean,
     @Serializable(with = InstantSerializer::class)
     val createdAt: java.time.Instant,
@@ -81,6 +98,31 @@ data class SerializableRecurringTransactionEntity(
     val merchant: String?,
     val note: String?,
     val enabled: Boolean,
+    @Serializable(with = InstantSerializer::class)
+    val createdAt: java.time.Instant,
+    @Serializable(with = InstantSerializer::class)
+    val updatedAt: java.time.Instant,
+)
+
+@Serializable
+data class SerializableInvestmentTypeEntity(
+    val id: Long,
+    val name: String,
+    val sortOrder: Int,
+    @Serializable(with = InstantSerializer::class)
+    val createdAt: java.time.Instant,
+)
+
+@Serializable
+data class SerializableInvestmentEntryEntity(
+    val id: Long,
+    val kind: String,
+    val direction: String,
+    val typeId: Long?,
+    val amountPaise: Long,
+    @Serializable(with = LocalDateSerializer::class)
+    val entryDate: java.time.LocalDate,
+    val note: String?,
     @Serializable(with = InstantSerializer::class)
     val createdAt: java.time.Instant,
     @Serializable(with = InstantSerializer::class)

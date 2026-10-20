@@ -25,6 +25,11 @@ class SettingsViewModel(
 
     private val backupManager = BackupManager()
 
+    @Suppress("DEPRECATION")
+    val appVersion: String = runCatching {
+        context.packageManager.getPackageInfo(context.packageName, 0).versionName
+    }.getOrNull().orEmpty()
+
     private val _backupMessage = MutableStateFlow<String?>(null)
     val backupMessage: StateFlow<String?> = _backupMessage.asStateFlow()
 

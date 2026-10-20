@@ -30,8 +30,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,6 +60,8 @@ import `in`.marxen.pocket.ui.insights.CategoryDetailScreen
 import `in`.marxen.pocket.ui.insights.CategoryListScreen
 import `in`.marxen.pocket.ui.insights.InsightsScreen
 import `in`.marxen.pocket.ui.insights.SubcategoryTransactionsScreen
+import `in`.marxen.pocket.ui.investment.AddInvestmentScreen
+import `in`.marxen.pocket.ui.investment.InvestmentLedgerScreen
 import `in`.marxen.pocket.ui.settings.SettingsScreen
 import `in`.marxen.pocket.ui.settings.SettingsViewModel
 import `in`.marxen.pocket.ui.splash.SplashScreen
@@ -145,6 +150,7 @@ fun PocketNavHost(appContainer: AppContainer) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+    var insightsTab by rememberSaveable { mutableIntStateOf(0) }
 
     val showBottomBar = currentRoute in bottomNavItems.map { it.route }
 
@@ -180,11 +186,18 @@ fun PocketNavHost(appContainer: AppContainer) {
         },
         floatingActionButton = {
             if (showBottomBar) {
+                val investmentFab = currentRoute == Routes.INSIGHTS && insightsTab == 2
                 FloatingActionButton(
-                    onClick = { navController.navigate(Routes.ADD) },
+                    onClick = {
+                        navController.navigate(if (investmentFab) Routes.ADD_INVESTMENT else Routes.ADD)
+                    },
                     containerColor = MaterialTheme.colorScheme.primary,
                 ) {
-                    Icon(Icons.Filled.Add, contentDescription = "Add Expense", tint = Color.White)
+                    Icon(
+                        Icons.Filled.Add,
+                        contentDescription = if (investmentFab) "Add Investment" else "Add Expense",
+                        tint = Color.White,
+                    )
                 }
             }
         },
@@ -284,6 +297,12 @@ fun PocketNavHost(appContainer: AppContainer) {
             ) {
                 InsightsScreen(
                     onSeeAllCategories = { month -> navController.navigate(Routes.categoryListRoute(month)) },
+                    selectedTab = insightsTab,
+                    onSelectTab = { insightsTab = it },
+                    onInvestmentLedgerClick = { kind, month ->
+                        navController.navigate(Routes.investmentLedgerRoute(kind, month))
+                    },
+                    onInvestmentEntryClick = { id -> navController.navigate(Routes.investmentEditRoute(id)) },
                 )
             }
             composable(
@@ -357,6 +376,39 @@ fun PocketNavHost(appContainer: AppContainer) {
                     month = month,
                     onBack = { navController.popBackStack() },
                     onTransactionClick = { id -> navController.navigate(Routes.editRoute(id)) },
+                )
+            }
+            composable(Routes.ADD_INVESTMENT) {
+                AddInvestmentScreen(
+                    onBack = { navController.popBackStack() },
+                    onSaved = { navController.popBackStack() },
+                )
+            }
+            composable(
+                route = Routes.EDIT_INVESTMENT,
+                arguments = listOf(navArgument("entryId") { type = NavType.LongType }),
+            ) { backStackEntry ->
+                AddInvestmentScreen(
+                    entryId = backStackEntry.arguments?.getLong("entryId"),
+                    onBack = { navController.popBackStack() },
+                    onSaved = { navController.popBackStack() },
+                )
+            }
+            composable(
+                route = Routes.INVESTMENT_LEDGER,
+                arguments = listOf(
+                    navArgument("kind") { type = NavType.StringType; defaultValue = "SAVING" },
+                    navArgument("month") { type = NavType.StringType; defaultValue = java.time.YearMonth.now().toString() },
+                ),
+            ) { backStackEntry ->
+                val kind = backStackEntry.arguments?.getString("kind") ?: "SAVING"
+                val month = backStackEntry.arguments?.getString("month")?.let { java.time.YearMonth.parse(it) }
+                    ?: java.time.YearMonth.now()
+                InvestmentLedgerScreen(
+                    kind = kind,
+                    month = month,
+                    onBack = { navController.popBackStack() },
+                    onEntryClick = { id -> navController.navigate(Routes.investmentEditRoute(id)) },
                 )
             }
             composable(
