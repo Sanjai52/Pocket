@@ -187,7 +187,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                     Text(text = "Version", style = MaterialTheme.typography.bodyLarge)
                 }
                 Text(
-                    text = "1.0",
+                    text = viewModel.appVersion,
                     style = MaterialTheme.typography.bodyMedium,
                     color = PocketTextSecondary,
                 )
@@ -238,7 +238,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
             title = { Text("Delete all data?") },
-            text = { Text("This will permanently delete all your transactions, categories, and budgets. This action cannot be undone.") },
+            text = { Text("This will permanently delete all your transactions, categories, budgets, and investments. This action cannot be undone.") },
             confirmButton = {
                 TextButton(onClick = {
                     showDeleteDialog = false

@@ -22,10 +22,14 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -44,6 +48,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import `in`.marxen.pocket.ui.investment.InvestmentTab
 import `in`.marxen.pocket.ui.theme.CatBills
 import `in`.marxen.pocket.ui.theme.CatFood
 import `in`.marxen.pocket.ui.theme.CatOther
@@ -62,15 +67,33 @@ private val donutColors = listOf(CatFood, CatBills, CatShopping, CatTransport, C
 @Composable
 fun InsightsScreen(
     onSeeAllCategories: (YearMonth) -> Unit = {},
+    selectedTab: Int = 0,
+    onSelectTab: (Int) -> Unit = {},
+    onInvestmentLedgerClick: (String, YearMonth) -> Unit = { _, _ -> },
+    onInvestmentEntryClick: (Long) -> Unit = {},
     viewModel: InsightsViewModel = viewModel(
         factory = InsightsViewModel.Factory(
             (LocalContext.current.applicationContext as `in`.marxen.pocket.PocketApplication).container.repository,
+            (LocalContext.current.applicationContext as `in`.marxen.pocket.PocketApplication).container.investmentRepository,
         ),
     ),
 ) {
     val state by viewModel.uiState.collectAsState()
-    val tabs = listOf("Spending", "Income", "Trends")
+    val tabs = listOf("Spending", "Income", "Investment")
     var showMonthPicker by remember { mutableIntStateOf(0) }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(Unit) {
+        viewModel.investmentDeletedEvent.collect {
+            val result = snackbarHostState.showSnackbar(
+                message = "Entry deleted",
+                actionLabel = "Undo",
+            )
+            if (result == SnackbarResult.ActionPerformed) {
+                viewModel.undoInvestmentDelete()
+            }
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
@@ -112,15 +135,15 @@ fun InsightsScreen(
             }
 
             item {
-                TabRow(selectedTabIndex = state.selectedTab) {
+                TabRow(selectedTabIndex = selectedTab) {
                     tabs.forEachIndexed { index, title ->
                         Tab(
-                            selected = state.selectedTab == index,
-                            onClick = { viewModel.selectTab(index) },
+                            selected = selectedTab == index,
+                            onClick = { onSelectTab(index) },
                             text = {
                                 Text(
                                     text = title,
-                                    color = if (state.selectedTab == index) PocketGreen else PocketTextSecondary,
+                                    color = if (selectedTab == index) PocketGreen else PocketTextSecondary,
                                 )
                             },
                         )
@@ -129,19 +152,30 @@ fun InsightsScreen(
             }
 
             item {
-                when (state.selectedTab) {
+                when (selectedTab) {
                     0 -> SpendingTab(
                         state = state,
                         onSeeAllCategories = onSeeAllCategories,
-                        onSeeAllClick = { viewModel.selectTab(2) },
                     )
                     1 -> IncomeTab(state)
-                    2 -> TrendsTab(state)
+                    2 -> InvestmentTab(
+                        state = state,
+                        onBalanceClick = { kind -> onInvestmentLedgerClick(kind, state.month) },
+                        onEntryClick = onInvestmentEntryClick,
+                        onEntryDelete = viewModel::deleteInvestmentEntry,
+                    )
                 }
             }
 
             item { Spacer(modifier = Modifier.height(80.dp)) }
         }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 96.dp),
+        )
 
         if (showMonthPicker > 0) {
             MonthPickerDialog(
@@ -201,7 +235,6 @@ private fun MonthPickerDialog(
 private fun SpendingTab(
     state: InsightsUiState,
     onSeeAllCategories: (YearMonth) -> Unit = {},
-    onSeeAllClick: () -> Unit = {},
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Card(
@@ -295,24 +328,12 @@ private fun SpendingTab(
         }
 
         if (state.monthlyTrend.isNotEmpty()) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = "Monthly Trend",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = PocketText,
-                )
-                Text(
-                    text = "See all",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = PocketGreen,
-                    modifier = Modifier.clickable { onSeeAllClick() },
-                )
-            }
+            Text(
+                text = "Monthly Trend",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = PocketText,
+            )
 
             MonthlyTrendChart(
                 monthlyTrend = state.monthlyTrend,
@@ -484,34 +505,5 @@ private fun IncomeTab(state: InsightsUiState) {
                 color = Color.White,
             )
         }
-    }
-}
-
-@Composable
-private fun TrendsTab(state: InsightsUiState) {
-    if (state.monthlyTrend.isEmpty()) {
-        Text(
-            text = "Loading trends...",
-            style = MaterialTheme.typography.bodyMedium,
-            color = PocketTextSecondary,
-            modifier = Modifier.padding(vertical = 16.dp),
-        )
-        return
-    }
-
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text(
-            text = "Monthly Spending Trend",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = PocketText,
-        )
-
-        MonthlyTrendChart(
-            monthlyTrend = state.monthlyTrend,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp),
-        )
     }
 }
