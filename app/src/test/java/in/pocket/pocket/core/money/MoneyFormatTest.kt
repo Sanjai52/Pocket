@@ -34,9 +34,18 @@ class MoneyFormatTest {
         assertEquals("₹0", formatPaiseShort(0))
         assertEquals("₹450", formatPaiseShort(45000))
         assertEquals("₹999.55", formatPaiseShort(99955))
-        assertEquals("₹10,000", formatPaiseShort(1000000))
-        assertEquals("₹99,999", formatPaiseShort(9999900))
+        assertEquals("₹9,999", formatPaiseShort(999900))
         assertEquals("-₹500", formatPaiseShort(-50000))
+    }
+
+    @Test
+    fun short_abbreviatesThousandAmounts() {
+        assertEquals("₹10K", formatPaiseShort(1000000))
+        assertEquals("₹15K", formatPaiseShort(1500000))
+        assertEquals("₹15.5K", formatPaiseShort(1550000))
+        assertEquals("₹15.1K", formatPaiseShort(1505000))
+        assertEquals("₹100K", formatPaiseShort(9999900))
+        assertEquals("-₹15K", formatPaiseShort(-1500000))
     }
 
     @Test

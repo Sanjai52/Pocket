@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -32,12 +33,20 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import `in`.marxen.pocket.R
 import `in`.marxen.pocket.ui.insights.InsightsUiState
 import `in`.marxen.pocket.ui.theme.PocketGreen
 import `in`.marxen.pocket.ui.theme.PocketText
 import `in`.marxen.pocket.ui.theme.PocketTextSecondary
 import java.util.Locale
+
+/** displaySmall is 36sp; shrink instead of ellipsizing when the card is narrow. */
+private val summaryValueAutoSize = TextAutoSize.StepBased(
+    minFontSize = 18.sp,
+    maxFontSize = 36.sp,
+    stepSize = 2.sp,
+)
 
 @Composable
 fun InvestmentTab(
@@ -79,7 +88,9 @@ fun InvestmentTab(
                             fontWeight = FontWeight.Bold,
                             color = Color.White,
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
+                            softWrap = false,
+                            overflow = TextOverflow.Clip,
+                            autoSize = summaryValueAutoSize,
                         )
                         Spacer(modifier = Modifier.width(2.dp))
                         Icon(
@@ -119,7 +130,9 @@ fun InvestmentTab(
                             fontWeight = FontWeight.Bold,
                             color = Color.White,
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
+                            softWrap = false,
+                            overflow = TextOverflow.Clip,
+                            autoSize = summaryValueAutoSize,
                         )
                         Spacer(modifier = Modifier.width(2.dp))
                         Icon(
