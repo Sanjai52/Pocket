@@ -122,9 +122,11 @@ class InsightsViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), InsightsUiState())
 
     init {
-        loadMonthlyTrends()
+        // Monthly Trend is temporarily hidden until the redesign is ready.
+        // loadMonthlyTrends()
     }
 
+    /*
     private fun loadMonthlyTrends() {
         viewModelScope.launch {
             val currentMonth = _selectedMonth.value
@@ -144,10 +146,11 @@ class InsightsViewModel(
             }
         }
     }
+    */
 
     fun selectMonth(month: YearMonth) {
         _selectedMonth.value = month
-        loadMonthlyTrends()
+        // loadMonthlyTrends()
     }
 
     private var lastDeletedInvestment: InvestmentEntryEntity? = null

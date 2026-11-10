@@ -25,7 +25,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -51,11 +50,9 @@ import `in`.marxen.pocket.ui.theme.PocketTextSecondary
 
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel) {
-    val theme by viewModel.theme.collectAsState()
     val userName by viewModel.userName.collectAsState()
     val backupMessage by viewModel.backupMessage.collectAsState()
 
-    var showThemeDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showNameDialog by remember { mutableStateOf(false) }
     var nameDraft by remember { mutableStateOf("") }
@@ -122,8 +119,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                 emoji = "\uD83C\uDFA8",
                 iconBackground = Color(0xFF6C5CE7),
                 title = "Theme",
-                value = theme.replaceFirstChar { it.uppercase() },
-                onClick = { showThemeDialog = true },
+                value = "Light",
             )
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
@@ -197,14 +193,6 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
         SnackbarHost(hostState = snackbarHostState)
     }
 
-    if (showThemeDialog) {
-        ThemeDialog(
-            currentTheme = theme,
-            onSelect = { viewModel.setTheme(it) },
-            onDismiss = { showThemeDialog = false },
-        )
-    }
-
     if (showNameDialog) {
         AlertDialog(
             onDismissRequest = { showNameDialog = false },
@@ -273,13 +261,17 @@ private fun SettingsRowWithIcon(
     iconBackground: Color,
     title: String,
     value: String?,
-    onClick: () -> Unit,
+    onClick: (() -> Unit)? = null,
 ) {
-    Row(
-        modifier = Modifier
+    val rowModifier = if (onClick != null) {
+        Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(vertical = 10.dp),
+    } else {
+        Modifier.fillMaxWidth()
+    }
+    Row(
+        modifier = rowModifier.padding(vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
@@ -305,35 +297,12 @@ private fun SettingsRowWithIcon(
             )
             Spacer(modifier = Modifier.width(4.dp))
         }
-        Icon(
-            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-            contentDescription = null,
-            tint = PocketTextSecondary.copy(alpha = 0.5f),
-        )
+        if (onClick != null) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = PocketTextSecondary.copy(alpha = 0.5f),
+            )
+        }
     }
-}
-
-@Composable
-private fun ThemeDialog(currentTheme: String, onSelect: (String) -> Unit, onDismiss: () -> Unit) {
-    val options = listOf("system" to "System default", "light" to "Light", "dark" to "Dark")
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Theme") },
-        text = {
-            Column {
-                options.forEach { (value, label) ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth().clickable { onSelect(value); onDismiss() }.padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        RadioButton(selected = currentTheme == value, onClick = { onSelect(value); onDismiss() })
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(text = label, style = MaterialTheme.typography.bodyLarge)
-                    }
-                }
-            }
-        },
-        confirmButton = {},
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
-    )
 }

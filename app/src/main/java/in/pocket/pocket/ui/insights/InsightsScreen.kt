@@ -327,6 +327,8 @@ private fun SpendingTab(
             }
         }
 
+        // Monthly Trend is temporarily hidden until the redesign is ready.
+        /*
         if (state.monthlyTrend.isNotEmpty()) {
             Text(
                 text = "Monthly Trend",
@@ -342,6 +344,7 @@ private fun SpendingTab(
                     .height(160.dp),
             )
         }
+        */
 
     }
 }
@@ -393,6 +396,7 @@ private fun DonutChart(
     }
 }
 
+/* Temporarily hidden with the Monthly Trend section.
 @Composable
 private fun MonthlyTrendChart(
     monthlyTrend: List<MonthTotal>,
@@ -483,6 +487,7 @@ private fun MonthlyTrendChart(
         }
     }
 }
+*/
 
 @Composable
 private fun IncomeTab(state: InsightsUiState) {
