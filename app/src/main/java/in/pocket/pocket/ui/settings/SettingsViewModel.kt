@@ -33,12 +33,6 @@ class SettingsViewModel(
     private val _backupMessage = MutableStateFlow<String?>(null)
     val backupMessage: StateFlow<String?> = _backupMessage.asStateFlow()
 
-    val theme: StateFlow<String> = prefs.theme.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(5000),
-        "system",
-    )
-
     val userName: StateFlow<String> = prefs.userName.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
@@ -56,10 +50,6 @@ class SettingsViewModel(
         SharingStarted.WhileSubscribed(5000),
         false,
     )
-
-    fun setTheme(theme: String) {
-        viewModelScope.launch { prefs.setTheme(theme) }
-    }
 
     fun setUserName(name: String) {
         val trimmed = name.trim()
