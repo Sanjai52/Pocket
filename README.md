@@ -2,7 +2,7 @@
 
 A personal expense manager for Android. Track daily spending by category and
 subcategory, browse a calendar of transactions, and review insights with
-category breakdowns and monthly trends — all offline, all on-device.
+category breakdowns, savings, and investment ledgers — all offline, all on-device.
 
 
 <p align="center">
@@ -15,9 +15,10 @@ category breakdowns and monthly trends — all offline, all on-device.
 - 11 built-in categories, each with subcategories (plus custom subcategories)
 - Custom categories with icon and color
 - Calendar month grid with per-day totals and transaction dots
-- Insights: spending donut, category breakdown with subcategory drill-down, 6-month trend
+- Insights: spending donut, category breakdown with subcategory drill-down
+- Savings and investment tracking with ledgers
 - Month-wise filtering on Home, Calendar, and Insights
-- Light and dark themes (system / light / dark)
+- Light-only theme
 - JSON backup/restore and CSV export via system file picker
 - Full data reset from Settings
 - First-launch welcome with name entry (auto title-cased)
@@ -30,7 +31,7 @@ category breakdowns and monthly trends — all offline, all on-device.
 | UI | Jetpack Compose + Material 3 |
 | Navigation | navigation-compose 2.8.9 (instant bottom-tab switches, fades on push screens) |
 | Database | Room 2.8.5 (KSP), schema v2 with `subcategories` table |
-| Preferences | DataStore Preferences (theme, user name, first-launch flag) |
+| Preferences | DataStore Preferences (user name, first-launch flag; legacy theme value ignored) |
 | Async | Kotlin Coroutines + StateFlow (MVVM, repository pattern) |
 | Min / Target SDK | 26 / 36 (compile SDK 36) |
 | Language | Kotlin 2.4.20, AGP 9.4.0 |
@@ -47,7 +48,7 @@ Single-activity (`MainActivity`) Compose app:
 - `data/repository/` — `TransactionRepository`, the single data access point.
 - `data/prefs/` — `PocketPrefs` (DataStore).
 - `navigation/` — `PocketNavHost` with bottom bar, FAB, and nested
-  Insights → Categories → Category-detail flow.
+  Insights → Categories/Category-detail and Investment ledger flows.
 
 ## Project Structure
 
@@ -67,8 +68,8 @@ app/src/main/java/in/marxen/pocket/
     ├── home/                  # greeting, balance card, today list
     ├── calendar/              # month grid, day summary
     ├── expense/               # add/edit with subcategories
-    ├── insights/              # spending/income/trends, category drill-down
-    ├── settings/              # theme, backup/restore, export, reset
+    ├── insights/              # spending/income/investments, category drill-down
+    ├── settings/              # backup/restore, export, reset
     └── theme/                 # colors, typography
 docs/
 ├── PLAN.md / PRD.md           # product plan and requirements
@@ -94,10 +95,10 @@ Release builds are signed with `app/pocket-release.jks` (configured in
 
 ```bash
 ./gradlew assembleRelease
-cp app/build/outputs/apk/release/app-release.apk releases/Pocket-v1.0-release.apk
+cp app/build/outputs/apk/release/app-release.apk releases/Pocket-vX.Y-release.apk
 ```
 
-Current release: `releases/Pocket-v1.2-release.apk` (v1.2, versionCode 3).
+Current release: `releases/Pocket-v1.5-release.apk` (v1.5, versionCode 6).
 
 ## Performance Notes
 
@@ -110,7 +111,7 @@ sequence. See `docs/chronicles/` for full measurement logs.
 
 ## Docs Index
 
-- `docs/PLAN.md`, `docs/PRD.md` — what the app is supposed to do
+- [Project wiki](https://github.com/Sanjai52/Pocket/wiki) — user guide, architecture, backup/export, and release notes
 - `docs/chronicles/` — performance debug history with frame measurements
 - `docs/superpowers/plans/` — implementation plans per feature/fix
 
