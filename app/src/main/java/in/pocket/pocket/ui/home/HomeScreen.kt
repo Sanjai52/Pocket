@@ -135,7 +135,7 @@ fun HomeScreen(
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = "S",
+                        text = state.userName.trim().take(1).uppercase().ifBlank { "U" },
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
